@@ -11,8 +11,12 @@ class SpiceElement(ABC):
         
     @abstractmethod
     def to_string(self) -> str:
-        """Return the SPICE netlist line as a string."""
+        """Return the SPICE netlist element as a formatted string."""
         pass
+    
+    def to_line(self) -> str:
+        """Return the SPICE netlist line as a single line string."""
+        return self.to_string()
     
     def __str__(self) -> str:
         return self.to_string()

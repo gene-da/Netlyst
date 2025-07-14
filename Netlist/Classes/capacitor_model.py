@@ -19,7 +19,8 @@ class CMOD(MODEL):
         tnom: Optional[Union[float, int, str]] = None,
         di: Optional[Union[float, int, str]] = None,
         thick: Optional[Union[float, int, str]] = None,
-        scope: str = "global"
+        scope: str = "global",
+        doc: Optional[str] = None
     ):
         type = "C"
 
@@ -39,7 +40,7 @@ class CMOD(MODEL):
 
         mod = " ".join(params)
 
-        # Model name resolution (3-digit padding if int)
+        # Model name resolution
         if isinstance(name, str):
             resolved_name = name
         elif isinstance(name, int):
@@ -47,7 +48,6 @@ class CMOD(MODEL):
         else:
             raise TypeError(f"Invalid type for name: {type(name)}")
 
-        # Scope-safe instance registration
         if scope not in CMOD._instances:
             CMOD._instances[scope] = {}
         if resolved_name in CMOD._instances[scope] and CMOD._instances[scope][resolved_name] is not self:
@@ -57,4 +57,4 @@ class CMOD(MODEL):
         self.scope = scope
         CMOD._instances[scope][resolved_name] = self
 
-        super().__init__(self.name, type, mod)
+        super().__init__(self.name, type, mod, doc=doc)

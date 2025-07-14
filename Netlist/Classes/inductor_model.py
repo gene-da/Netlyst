@@ -16,7 +16,8 @@ class LMOD(MODEL):
         tnom: Optional[Union[float, int, str]] = None,
         nt: Optional[Union[float, int, str]] = None,
         mu: Optional[Union[float, int, str]] = None,
-        scope: str = "global"
+        scope: str = "global",
+        doc: Optional[str] = None
     ):
         type = "L"
 
@@ -33,7 +34,7 @@ class LMOD(MODEL):
 
         mod = " ".join(params)
 
-        # Name resolution with 3-digit zero padding
+        # Name resolution
         if isinstance(name, str):
             resolved_name = name
         elif isinstance(name, int):
@@ -41,6 +42,7 @@ class LMOD(MODEL):
         else:
             raise TypeError(f"Invalid type for name: {type(name)}")
 
+        # Instance tracking
         if scope not in LMOD._instances:
             LMOD._instances[scope] = {}
         if resolved_name in LMOD._instances[scope] and LMOD._instances[scope][resolved_name] is not self:
@@ -50,4 +52,4 @@ class LMOD(MODEL):
         self.scope = scope
         LMOD._instances[scope][resolved_name] = self
 
-        super().__init__(self.name, type, mod)
+        super().__init__(self.name, type, mod, doc=doc)

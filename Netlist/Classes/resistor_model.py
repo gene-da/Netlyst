@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 class RMOD(MODEL):
     _instances = {}
-    
+
     def __init__(
         self,
         name: Union[int, str],
@@ -20,12 +20,12 @@ class RMOD(MODEL):
         lf: Optional[Union[float, int, str]] = None,
         ef: Optional[Union[float, int, str]] = None,
         res: Optional[Union[float, int, str]] = None,
-        scope: str = "global"
+        scope: str = "global",
+        doc: Optional[str] = None
     ):
-        # Always use "R" as type for resistor models
         type = "R"
-        # Build the model string from provided parameters
         params = []
+
         if tc1 is not None: params.append(f'tc1={self._format_value(tc1)}')
         if tc2 is not None: params.append(f'tc2={self._format_value(tc2)}')
         if rsh is not None: params.append(f'rsh={self._format_value(rsh)}')
@@ -39,19 +39,15 @@ class RMOD(MODEL):
         if lf is not None: params.append(f'lf={self._format_value(lf)}')
         if ef is not None: params.append(f'ef={self._format_value(ef)}')
         if res is not None: params.append(f'res={self._format_value(res)}')
+
         mod = " ".join(params)
-        
-        # Handle name resolution
+
         if isinstance(name, str):
             resolved_name = name
         elif isinstance(name, int):
-            resolved_name = f'RMOD{name:03d}'  # zero-padded to 3 digits
+            resolved_name = f'RMOD{name:03d}'
         else:
             raise TypeError(f"Invalid type for name: {type(name)}")
-
-        # Handle scope-aware instance tracking
-        if not hasattr(RMOD, "_instances"):
-            RMOD._instances = {}
 
         if scope not in RMOD._instances:
             RMOD._instances[scope] = {}
@@ -62,5 +58,5 @@ class RMOD(MODEL):
         self.name = resolved_name
         self.scope = scope
         RMOD._instances[scope][resolved_name] = self
-        
-        super().__init__(self.name, type, mod)
+
+        super().__init__(self.name, type, mod, doc=doc)

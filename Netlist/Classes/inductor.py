@@ -29,12 +29,12 @@ class L(SpiceElement, Nodes):
         tc1: Optional[Union[float, int, str]] = None,
         tc2: Optional[Union[float, int, str]] = None,
         ic: Optional[Union[float, int, str]] = None,
-        scope: str = "global"
+        scope: str = "global",
+        doc: Optional[str] = None
     ) -> None:
         SpiceElement.__init__(self)
         Nodes.__init__(self)
 
-        # Name resolution
         if isinstance(name, str):
             resolved_name = name
         elif isinstance(name, int):
@@ -42,7 +42,6 @@ class L(SpiceElement, Nodes):
         else:
             raise TypeError(f"Invalid type for name: {type(name)}")
 
-        # Instance registration
         if scope not in L._instances:
             L._instances[scope] = {}
         if resolved_name in L._instances[scope] and L._instances[scope][resolved_name] is not self:
@@ -52,11 +51,9 @@ class L(SpiceElement, Nodes):
         self.scope = scope
         L._instances[scope][resolved_name] = self
 
-        # Node assignment
         self.nodes["n+"] = self._format_node(node_p)
         self.nodes["n-"] = self._format_node(node_n)
 
-        # Param storage
         self._value = self._format_value(value)
         self._mname = mname.name if mname else None
         self._nt = self._format_value(nt)
@@ -67,6 +64,8 @@ class L(SpiceElement, Nodes):
         self._tc1 = self._format_value(tc1)
         self._tc2 = self._format_value(tc2)
         self._ic = self._format_value(ic)
+
+        self._doc = doc if doc else None
 
     # --- Properties ---
     @property
@@ -121,32 +120,37 @@ class L(SpiceElement, Nodes):
 
     # --- Output ---
     def to_string(self) -> str:
+        doc_line = f"* {self._doc}" if self._doc else ""
         parts = [
             f'{self.name:<8}',
             f'{self.nodes["n+"]:<8}',
             f'{self.nodes["n-"]:<8}',
             f'{self.value:<8}',
         ]
-        
-        # If mname exists, place it inline
-        if self.mname is not None:
+
+        if self.mname:
             parts.append(f'{self.mname:<8}')
-        
-        # Remove mname from the continuation options
-        optional_fields = [
-            ("nt", self.nt), 
-            ("m", self.m),
-            ("scale", self.scale), 
-            ("temp", self.temp),
-            ("dtemp", self.dtemp), 
-            ("tc1", self.tc1),
-            ("tc2", self.tc2), 
-            ("ic", self.ic)
-        ]
+
+        optional_fields = []
+        if self.mname is None:
+            optional_fields = [
+                ("nt", self.nt), ("m", self.m), ("scale", self.scale),
+                ("temp", self.temp), ("dtemp", self.dtemp),
+                ("tc1", self.tc1), ("tc2", self.tc2),
+                ("ic", self.ic)
+            ]
+        else:
+            optional_fields = [
+                ("temp", self.temp), ("dtemp", self.dtemp),
+                ("m", self.m), ("scale", self.scale),
+                ("ic", self.ic)
+            ]
 
         extras = [f"{key}={val}" for key, val in optional_fields if val is not None]
+        base_line = " ".join(parts)
+
         if not extras:
-            return " ".join(parts)
+            return f"{doc_line}\n{base_line}" if doc_line else base_line
 
         lines = []
         current_line = "+ "
@@ -158,5 +162,34 @@ class L(SpiceElement, Nodes):
         if current_line.strip() != "+":
             lines.append(current_line.rstrip())
 
-        return f"{' '.join(parts)}\n" + "\n".join(lines)
+        netlist_block = f"{base_line}\n" + "\n".join(lines)
+        return f"{doc_line}\n{netlist_block}" if doc_line else netlist_block
 
+    def to_line(self) -> str:
+        parts = [
+            f'{self.name}',
+            f'{self.nodes["n+"]}',
+            f'{self.nodes["n-"]}',
+            f'{self.value}',
+        ]
+
+        if self.mname:
+            parts.append(f'{self.mname}')
+
+        if self.mname is None:
+            optional_fields = [
+                ("nt", self.nt), ("m", self.m), ("scale", self.scale),
+                ("temp", self.temp), ("dtemp", self.dtemp),
+                ("tc1", self.tc1), ("tc2", self.tc2),
+                ("ic", self.ic)
+            ]
+        else:
+            optional_fields = [
+                ("temp", self.temp), ("dtemp", self.dtemp),
+                ("m", self.m), ("scale", self.scale),
+                ("ic", self.ic)
+            ]
+
+        extras = [f"{key}={val}" for key, val in optional_fields if val is not None]
+
+        return " ".join(parts + extras)

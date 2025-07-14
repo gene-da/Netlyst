@@ -11,8 +11,6 @@ CXXXXXXX n+ n- <value> <mname> <l=length> <w=width> <m=val>
 + <scale=val> <temp=val> <dtemp=val> <ic=init_condition>
 """
 
-# ...existing code...
-
 class C(SpiceElement, Nodes):
     _instances = {}
 
@@ -32,12 +30,12 @@ class C(SpiceElement, Nodes):
         ic: Optional[Union[float, int, str]] = None,
         l: Optional[Union[float, int, str]] = None,
         w: Optional[Union[float, int, str]] = None,
-        scope: str = "global"
+        scope: str = "global",
+        doc: Optional[str] = None
     ) -> None:
         SpiceElement.__init__(self)
         Nodes.__init__(self)
 
-        # Name resolution
         if isinstance(name, str):
             resolved_name = name
         elif isinstance(name, int):
@@ -45,7 +43,6 @@ class C(SpiceElement, Nodes):
         else:
             raise TypeError(f"Invalid type for name: {type(name)}")
 
-        # Instance registration
         if scope not in C._instances:
             C._instances[scope] = {}
         if resolved_name in C._instances[scope] and C._instances[scope][resolved_name] is not self:
@@ -55,11 +52,9 @@ class C(SpiceElement, Nodes):
         self.scope = scope
         C._instances[scope][resolved_name] = self
 
-        # Node assignment
         self.nodes["n+"] = self._format_node(node_p)
         self.nodes["n-"] = self._format_node(node_n)
 
-        # Param storage
         self._value = self._format_value(value)
         self._mname = mname.name if mname else None
         self._m = self._format_value(m)
@@ -71,6 +66,8 @@ class C(SpiceElement, Nodes):
         self._ic = self._format_value(ic)
         self._l = self._format_value(l)
         self._w = self._format_value(w)
+
+        self._doc = doc if doc else None
 
     # --- Properties ---
     @property
@@ -130,6 +127,7 @@ class C(SpiceElement, Nodes):
 
     # --- Output ---
     def to_string(self) -> str:
+        doc_line = f"* {self._doc}" if self._doc else ""
         parts = [
             f'{self.name:<8}',
             f'{self.nodes["n+"]:<8}',
@@ -137,35 +135,28 @@ class C(SpiceElement, Nodes):
             f'{self.value:<8}',
         ]
 
-        optional_fields = []
-
-        if self.mname is not None:
-            # Add mname directly to main line
+        if self.mname:
             parts.append(f'{self.mname:<8}')
 
-        if self.mname is not None and (self.l or self.w):
-            # Geometry-based model
+        if self.mname is None:
             optional_fields = [
-                ("l", self.l), ("w", self.w),
-                ("m", self.m), ("scale", self.scale),
-                ("temp", self.temp), ("dtemp", self.dtemp),
+                ("m", self.m), ("scale", self.scale), ("temp", self.temp),
+                ("dtemp", self.dtemp), ("tc1", self.tc1), ("tc2", self.tc2),
                 ("ic", self.ic)
             ]
         else:
-            # Basic model
             optional_fields = [
-                ("m", self.m), ("scale", self.scale),
-                ("temp", self.temp), ("dtemp", self.dtemp),
-                ("tc1", self.tc1), ("tc2", self.tc2),
-                ("ic", self.ic)
+                ("l", self.l), ("w", self.w), ("m", self.m),
+                ("scale", self.scale), ("temp", self.temp),
+                ("dtemp", self.dtemp), ("ic", self.ic)
             ]
 
         extras = [f"{key}={val}" for key, val in optional_fields if val is not None]
+        base_line = " ".join(parts)
 
         if not extras:
-            return " ".join(parts)
+            return f"{doc_line}\n{base_line}" if doc_line else base_line
 
-        # Wrap extras at 40 characters max per continuation line
         lines = []
         current_line = "+ "
         for field in extras:
@@ -176,4 +167,33 @@ class C(SpiceElement, Nodes):
         if current_line.strip() != "+":
             lines.append(current_line.rstrip())
 
-        return f"{' '.join(parts)}\n" + "\n".join(lines)
+        netlist_block = f"{base_line}\n" + "\n".join(lines)
+        return f"{doc_line}\n{netlist_block}" if doc_line else netlist_block
+
+    def to_line(self) -> str:
+        parts = [
+            f'{self.name}',
+            f'{self.nodes["n+"]}',
+            f'{self.nodes["n-"]}',
+            f'{self.value}',
+        ]
+
+        if self.mname:
+            parts.append(f'{self.mname}')
+
+        if self.mname is None:
+            optional_fields = [
+                ("m", self.m), ("scale", self.scale), ("temp", self.temp),
+                ("dtemp", self.dtemp), ("tc1", self.tc1), ("tc2", self.tc2),
+                ("ic", self.ic)
+            ]
+        else:
+            optional_fields = [
+                ("l", self.l), ("w", self.w), ("m", self.m),
+                ("scale", self.scale), ("temp", self.temp),
+                ("dtemp", self.dtemp), ("ic", self.ic)
+            ]
+
+        extras = [f"{key}={val}" for key, val in optional_fields if val is not None]
+
+        return " ".join(parts + extras)

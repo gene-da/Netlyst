@@ -1,9 +1,19 @@
 from Netlist.Components import*
 from Netlist.Classes.Base import*
 
+title = TITLE(
+    "Band-Pass Filter Design",
+    doc="""
+    This netlist describes a band-pass filter circuit.
+    It uses standard RLC components with a center frequency around 1kHz.
+    Ideal for audio pre-processing simulations.
+    """
+)
+print(title.to_string())
+comment = COMMENT("This is a comment", doc="Comment for the circuit")
+print(comment.to_string())
 
 r1 = R(1, 1, 2, 1_000_000)
-
 print(r1)
 
 r1.value = 2_000_000
@@ -36,3 +46,16 @@ lmod = LMOD(1, 1e-6, 1e-12, 1e-12, 1e-6, 0.01, 0.02, 27, 1e-6, 1e-6)
 l3 = L(3, 1, 2, 1e-6, mname=lmod)
 print(l3)
 print(lmod)
+
+s1 = S(1, 1, 2, 3, 4, mname=SW('SW1', vt=0.5, vh=1.0, ron=10, roff=100), state='ON')
+print(s1)
+s1.state = 'OFF'
+print(s1)
+
+s2 = W(2, 1, 2, 'V1', mname=CSW('CSW1', it=0.5, ih=1.0, ron=10, roff=100), state='ON')
+print(s2)
+s2.state = 'OFF'
+print(s2)
+
+end = END(doc="End of the circuit")
+print(end.to_string())

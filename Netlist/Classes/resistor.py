@@ -21,7 +21,8 @@ class R(SpiceElement, Nodes):
         mname: Optional[MODEL] = None,
         l: Optional[Union[float, int, str]] = None,
         w: Optional[Union[float, int, str]] = None,
-        scope: str = "global"
+        scope: str = "global",
+        doc: Optional[str] = None
     ) -> None:
         SpiceElement.__init__(self)
         Nodes.__init__(self)
@@ -61,6 +62,8 @@ class R(SpiceElement, Nodes):
         self._mname = mname.name if mname else None
         self._l = self._format_value(l)
         self._w = self._format_value(w)
+
+        self._doc = doc if doc else None
 
     # --- Properties ---
     @property
@@ -133,6 +136,7 @@ class R(SpiceElement, Nodes):
 
     # --- Output ---
     def to_string(self) -> str:
+        doc_line = f"* {self._doc}" if self._doc else ""
         parts = [
             f'{self.name:<8}',
             f'{self.nodes["n+"]:<8}',
@@ -162,8 +166,10 @@ class R(SpiceElement, Nodes):
 
         extras = [f"{key}={val}" for key, val in optional_fields if val is not None]
 
+        base_line = " ".join(parts)
+
         if not extras:
-            return " ".join(parts)
+            return f"{doc_line}\n{base_line}" if doc_line else base_line
 
         # Build continuation lines <= 40 chars
         lines = []
@@ -176,5 +182,35 @@ class R(SpiceElement, Nodes):
         if current_line.strip() != "+":
             lines.append(current_line.rstrip())
 
-        return f"{' '.join(parts)}\n" + "\n".join(lines)
+        netlist_block = f"{base_line}\n" + "\n".join(lines)
+        return f"{doc_line}\n{netlist_block}" if doc_line else netlist_block
+    
+    def to_line(self) -> str:
+        parts = [
+            f'{self.name}',
+            f'{self.nodes["n+"]}',
+            f'{self.nodes["n-"]}',
+            f'{self.value}',
+        ]
 
+        if self.mname:
+            parts.append(f'{self.mname}')
+
+        if self.mname is None:
+            optional_fields = [
+                ("ac", self.ac), ("m", self.m), ("scale", self.scale),
+                ("temp", self.temp), ("dtemp", self.dtemp),
+                ("tc1", self.tc1), ("tc2", self.tc2),
+                ("noisy", self.noisy)
+            ]
+        else:
+            optional_fields = [
+                ("l", self.l), ("w", self.w),
+                ("temp", self.temp), ("dtemp", self.dtemp),
+                ("m", self.m), ("ac", self.ac), ("scale", self.scale),
+                ("noisy", self.noisy)
+            ]
+
+        extras = [f"{key}={val}" for key, val in optional_fields if val is not None]
+
+        return " ".join(parts + extras)
