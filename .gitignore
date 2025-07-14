@@ -1,4 +1,5 @@
 # .gitignore
 .venv/
 .fake
-__pychache__
+__pycache__/
+*.py[cod]
