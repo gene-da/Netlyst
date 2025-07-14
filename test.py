@@ -1,6 +1,7 @@
+# from Netlist.Components import *
 from Netlist.Components import*
-from Netlist.Classes.Base import*
 
+# Title block
 title = TITLE(
     "Band-Pass Filter Design",
     doc="""
@@ -9,53 +10,44 @@ title = TITLE(
     Ideal for audio pre-processing simulations.
     """
 )
-print(title.to_string())
-comment = COMMENT("This is a comment", doc="Comment for the circuit")
-print(comment.to_string())
+print(title.to_string() + "\n")
 
-r1 = R(1, 1, 2, 1_000_000)
-print(r1)
+# Comment block
+comment = COMMENT("Instantiates BP_FILTER and supporting components", doc="Top-level circuit configuration")
+print(comment.to_string() + "\n")
 
-r1.value = 2_000_000
-r1.scale = 1_000
-print(r1)
-r2 = R(2, 1, 2, 1_000_000, ac='5', m=5, scale=1e-6, temp=27, dtemp=0.1, tc1=0.01, tc2=0.0)
-print(r2)
+# Subcircuit internal components
+r1 = R("R1", "IN", "N1", "1k", doc="Stage 1 resistor", scope='subcircuit')
+r2 = R("R2", "N1", "OUT", "2k", ac="1", temp="25", tc1="0.002", tc2="0.0005", doc="Biasing resistor", scope='subcircuit')
+c1 = C("C1", "IN", "N2", "100n", doc="Input coupling capacitor", scope='subcircuit')
+l1 = L("L1", "N2", 0, "10m", doc="Choke inductor", scope='subcircuit')
 
-rmod = RMOD(1, 1, 2, 1_000_000)
-r3 = R(3, 1, 2, 1_000_000, mname=rmod)
-print(r3)
-print(rmod)
+# Subcircuit definition
+bp_filter = SUBCKT(
+    name="BP_FILTER",
+    nodes=["IN", "OUT", 0],
+    circuit=[r1, r2, c1, l1],
+    doc="Band-pass filter subcircuit with RLC elements."
+)
+print(bp_filter.to_string() + "\n")
 
-c1 = C(1, 1, 2, 1e-6)
-c2 = C(2, 1, 2, 1e-6,m=5, scale=1e-6, temp=27, dtemp=0.1, tc1=0.01, tc2=0.02, ic=0.0)
-print(c1)
-print(c2)
+op_amp = SUBCKT(
+    name='Ideal Op-Amp',
+    nodes=['IN+', 'IN-', 'OUT', 0],
+    circuit=[
+        R("R1", "IN+", "OUT", "10k", doc="Feedback resistor", scope='subcircuit'),
+        R("R2", "IN-", "OUT", "10k", doc="Input resistor", scope='subcircuit'),
+        C("C1", "OUT", 0, "1u", doc="Output capacitor", scope='subcircuit')
+    ],
+    doc="Ideal operational amplifier subcircuit with feedback and input resistors."
+)
+# Top-level instantiation of subcircuit (as if used in a schematic)
+r3 = R("R1", "VIN", "IN", "100", doc="Input resistor to subcircuit")
+print(r3.to_string() + "\n")
 
-cmod = CMOD(1, 1e-6, 1e-12, 1e-12, 1e-6, 0.01, 0.02, 27, 1e-6, 1e-6)
-c3 = C(3, 1, 2, 1e-6, mname=cmod)
-print(c3)
-print(cmod)
+# Flat subcircuit instance line
+print(bp_filter.to_line() + "\n")
 
-l1 = L(1, 1, 2, 1e-6)
-l2 = L(2, 1, 2, 1e-6, m=5, scale=1e-6, temp=27, dtemp=0.1, tc1=0.01, tc2=0.02, ic=0.0)
-print(l1)
-print(l2)
-
-lmod = LMOD(1, 1e-6, 1e-12, 1e-12, 1e-6, 0.01, 0.02, 27, 1e-6, 1e-6)
-l3 = L(3, 1, 2, 1e-6, mname=lmod)
-print(l3)
-print(lmod)
-
-s1 = S(1, 1, 2, 3, 4, mname=SW('SW1', vt=0.5, vh=1.0, ron=10, roff=100), state='ON')
-print(s1)
-s1.state = 'OFF'
-print(s1)
-
-s2 = W(2, 1, 2, 'V1', mname=CSW('CSW1', it=0.5, ih=1.0, ron=10, roff=100), state='ON')
-print(s2)
-s2.state = 'OFF'
-print(s2)
-
+# End marker
 end = END(doc="End of the circuit")
 print(end.to_string())

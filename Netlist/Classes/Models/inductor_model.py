@@ -1,4 +1,4 @@
-from Netlist.Classes.Base.Model import *
+from Netlist.Classes.DotCommands import MODEL
 from typing import Optional, Union
 
 class LMOD(MODEL):

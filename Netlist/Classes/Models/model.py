@@ -1,4 +1,6 @@
-from Netlist.Classes.Base.SpiceElement import*
+from Netlist.Components import SpiceElement
+from typing import Optional
+
 """
 .model mname type(pname1=pval1 pname2=pval2 ... )
 """

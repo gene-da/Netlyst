@@ -1,17 +1,17 @@
 from typing import Optional, Union
-from Netlist.Classes.Base import*
+from Netlist.Components import SpiceElement, Nodes, MODEL
 
 """
-Standard Capacitor
-CXXXXXXX n+ n- <value> <mname> <m=val> <scale=val> <temp=val>
-+ <dtemp=val> <tc1=val> <tc2=val> <ic=init_condition>
-
-Semiconductor Capacitor
-CXXXXXXX n+ n- <value> <mname> <l=length> <w=width> <m=val>
-+ <scale=val> <temp=val> <dtemp=val> <ic=init_condition>
+Standard Inductor
+LYYYYYYY n+ n- <value> <mname> <nt=val> <m=val>
++ <scale=val> <temp=val> <dtemp=val> <tc1=val>
++ <tc2=val> <ic=init_condition>
 """
 
-class C(SpiceElement, Nodes):
+from typing import Optional, Union
+from Netlist.Classes.Base import *
+
+class L(SpiceElement, Nodes):
     _instances = {}
 
     def __init__(
@@ -21,6 +21,7 @@ class C(SpiceElement, Nodes):
         node_n: Union[int, str],
         value: Optional[Union[float, int, str]] = None,
         mname: Optional[MODEL] = None,
+        nt: Optional[Union[float, int, str]] = None,
         m: Optional[Union[float, int, str]] = None,
         scale: Optional[Union[float, int, str]] = None,
         temp: Optional[Union[float, int, str]] = None,
@@ -28,8 +29,6 @@ class C(SpiceElement, Nodes):
         tc1: Optional[Union[float, int, str]] = None,
         tc2: Optional[Union[float, int, str]] = None,
         ic: Optional[Union[float, int, str]] = None,
-        l: Optional[Union[float, int, str]] = None,
-        w: Optional[Union[float, int, str]] = None,
         scope: str = "global",
         doc: Optional[str] = None
     ) -> None:
@@ -39,24 +38,25 @@ class C(SpiceElement, Nodes):
         if isinstance(name, str):
             resolved_name = name
         elif isinstance(name, int):
-            resolved_name = f'C{name}'
+            resolved_name = f'L{name}'
         else:
             raise TypeError(f"Invalid type for name: {type(name)}")
 
-        if scope not in C._instances:
-            C._instances[scope] = {}
-        if resolved_name in C._instances[scope] and C._instances[scope][resolved_name] is not self:
-            raise ValueError(f"Duplicate capacitor name detected in scope '{scope}': '{resolved_name}'")
+        if scope not in L._instances:
+            L._instances[scope] = {}
+        if resolved_name in L._instances[scope] and L._instances[scope][resolved_name] is not self:
+            raise ValueError(f"Duplicate inductor name detected in scope '{scope}': '{resolved_name}'")
 
         self.name = resolved_name
         self.scope = scope
-        C._instances[scope][resolved_name] = self
+        L._instances[scope][resolved_name] = self
 
         self.nodes["n+"] = self._format_node(node_p)
         self.nodes["n-"] = self._format_node(node_n)
 
         self._value = self._format_value(value)
         self._mname = mname.name if mname else None
+        self._nt = self._format_value(nt)
         self._m = self._format_value(m)
         self._scale = self._format_value(scale)
         self._temp = self._format_value(temp)
@@ -64,8 +64,6 @@ class C(SpiceElement, Nodes):
         self._tc1 = self._format_value(tc1)
         self._tc2 = self._format_value(tc2)
         self._ic = self._format_value(ic)
-        self._l = self._format_value(l)
-        self._w = self._format_value(w)
 
         self._doc = doc if doc else None
 
@@ -79,6 +77,11 @@ class C(SpiceElement, Nodes):
     def mname(self): return self._mname
     @mname.setter
     def mname(self, model): self._mname = model.name if model else None
+
+    @property
+    def nt(self): return self._nt
+    @nt.setter
+    def nt(self, val): self._nt = self._format_value(val)
 
     @property
     def m(self): return self._m
@@ -115,16 +118,6 @@ class C(SpiceElement, Nodes):
     @ic.setter
     def ic(self, val): self._ic = self._format_value(val)
 
-    @property
-    def l(self): return self._l
-    @l.setter
-    def l(self, val): self._l = self._format_value(val)
-
-    @property
-    def w(self): return self._w
-    @w.setter
-    def w(self, val): self._w = self._format_value(val)
-
     # --- Output ---
     def to_string(self) -> str:
         doc_line = f"* {self._doc}" if self._doc else ""
@@ -138,17 +131,19 @@ class C(SpiceElement, Nodes):
         if self.mname:
             parts.append(f'{self.mname:<8}')
 
+        optional_fields = []
         if self.mname is None:
             optional_fields = [
-                ("m", self.m), ("scale", self.scale), ("temp", self.temp),
-                ("dtemp", self.dtemp), ("tc1", self.tc1), ("tc2", self.tc2),
+                ("nt", self.nt), ("m", self.m), ("scale", self.scale),
+                ("temp", self.temp), ("dtemp", self.dtemp),
+                ("tc1", self.tc1), ("tc2", self.tc2),
                 ("ic", self.ic)
             ]
         else:
             optional_fields = [
-                ("l", self.l), ("w", self.w), ("m", self.m),
-                ("scale", self.scale), ("temp", self.temp),
-                ("dtemp", self.dtemp), ("ic", self.ic)
+                ("temp", self.temp), ("dtemp", self.dtemp),
+                ("m", self.m), ("scale", self.scale),
+                ("ic", self.ic)
             ]
 
         extras = [f"{key}={val}" for key, val in optional_fields if val is not None]
@@ -183,15 +178,16 @@ class C(SpiceElement, Nodes):
 
         if self.mname is None:
             optional_fields = [
-                ("m", self.m), ("scale", self.scale), ("temp", self.temp),
-                ("dtemp", self.dtemp), ("tc1", self.tc1), ("tc2", self.tc2),
+                ("nt", self.nt), ("m", self.m), ("scale", self.scale),
+                ("temp", self.temp), ("dtemp", self.dtemp),
+                ("tc1", self.tc1), ("tc2", self.tc2),
                 ("ic", self.ic)
             ]
         else:
             optional_fields = [
-                ("l", self.l), ("w", self.w), ("m", self.m),
-                ("scale", self.scale), ("temp", self.temp),
-                ("dtemp", self.dtemp), ("ic", self.ic)
+                ("temp", self.temp), ("dtemp", self.dtemp),
+                ("m", self.m), ("scale", self.scale),
+                ("ic", self.ic)
             ]
 
         extras = [f"{key}={val}" for key, val in optional_fields if val is not None]

@@ -34,23 +34,18 @@ class Nodes:
         
     def _format_node(self, index: Union[int, str]) -> str:
         """
-        Returns a SPICE-compatible node name like 'N001', 'N023', etc.
-
-        Args:
-            index (int | str): The index to format as a node name.
-
-        Returns:
-            str: Formatted node name starting with 'N' and followed by a zero-padded number.
+        Formats node identifiers for SPICE compatibility.
+        - Converts 0 or '0' to 'GND'
+        - Accepts alphanumeric labels like 'IN', 'VDD', 'N001'
+        - Normalizes all to clean string
         """
+        if isinstance(index, (int, float)) and index == 0:
+            return "GND"
         if isinstance(index, str):
-            if index.upper().startswith("N"):
-                return index.upper()
-            try:
-                index = int(index)
-            except ValueError:
-                raise ValueError(f"Cannot convert string to node index: {index}")
-        elif not isinstance(index, int):
-            raise TypeError(f"Unsupported type for node index: {type(index).__name__}")
+            if index.strip() == "0":
+                return "GND"
+            return index.strip()
+        return str(index)
 
         return f"N{index:03d}"
             

@@ -1,6 +1,6 @@
 from typing import Optional, Union
 from Netlist.Classes.Base import *
-from Netlist.Classes.inductor import L
+from Netlist.Components import SpiceElement, L
 
 """_summary_
 KXXXXXXX LYYYYYYY LZZZZZZZ value

@@ -1,5 +1,5 @@
 from typing import Optional
-from .Base import SpiceElement
+from Netlist.Components import SpiceElement
 from datetime import datetime
 from textwrap import wrap
 

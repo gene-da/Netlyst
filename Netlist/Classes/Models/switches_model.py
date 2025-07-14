@@ -1,5 +1,5 @@
 from typing import Optional, Union
-from Netlist.Classes.Base import *
+from Netlist.Classes.DotCommands import MODEL
 
 class SW(MODEL):
     _instances = {}

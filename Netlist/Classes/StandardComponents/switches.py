@@ -1,6 +1,7 @@
 from typing import Optional, Union
 from Netlist.Classes.Base import *
-from Netlist.Classes.switches_model import*# Adjust to your actual path
+from Netlist.Components import SpiceElement, Nodes, SW, CSW
+
 
 class S(SpiceElement, Nodes):
     _instances = {}

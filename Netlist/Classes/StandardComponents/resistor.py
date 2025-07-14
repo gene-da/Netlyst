@@ -1,17 +1,7 @@
 from typing import Optional, Union
-from Netlist.Classes.Base import *
+from Netlist.Components import SpiceElement, Nodes, MODEL
 
-"""
-Standard Inductor
-LYYYYYYY n+ n- <value> <mname> <nt=val> <m=val>
-+ <scale=val> <temp=val> <dtemp=val> <tc1=val>
-+ <tc2=val> <ic=init_condition>
-"""
-
-from typing import Optional, Union
-from Netlist.Classes.Base import *
-
-class L(SpiceElement, Nodes):
+class R(SpiceElement, Nodes):
     _instances = {}
 
     def __init__(
@@ -20,52 +10,61 @@ class L(SpiceElement, Nodes):
         node_p: Union[int, str],
         node_n: Union[int, str],
         value: Optional[Union[float, int, str]] = None,
-        mname: Optional[MODEL] = None,
-        nt: Optional[Union[float, int, str]] = None,
+        ac: Optional[Union[float, int, str]] = None,
         m: Optional[Union[float, int, str]] = None,
         scale: Optional[Union[float, int, str]] = None,
         temp: Optional[Union[float, int, str]] = None,
         dtemp: Optional[Union[float, int, str]] = None,
         tc1: Optional[Union[float, int, str]] = None,
         tc2: Optional[Union[float, int, str]] = None,
-        ic: Optional[Union[float, int, str]] = None,
+        noisy: Optional[float] = None,
+        mname: Optional[MODEL] = None,
+        l: Optional[Union[float, int, str]] = None,
+        w: Optional[Union[float, int, str]] = None,
         scope: str = "global",
         doc: Optional[str] = None
     ) -> None:
         SpiceElement.__init__(self)
         Nodes.__init__(self)
 
+        # Name resolution
         if isinstance(name, str):
             resolved_name = name
         elif isinstance(name, int):
-            resolved_name = f'L{name}'
+            resolved_name = f'R{name}'
         else:
             raise TypeError(f"Invalid type for name: {type(name)}")
 
-        if scope not in L._instances:
-            L._instances[scope] = {}
-        if resolved_name in L._instances[scope] and L._instances[scope][resolved_name] is not self:
-            raise ValueError(f"Duplicate inductor name detected in scope '{scope}': '{resolved_name}'")
+        # Instance registration
+        if scope not in R._instances:
+            R._instances[scope] = {}
+        if resolved_name in R._instances[scope] and R._instances[scope][resolved_name] is not self:
+            raise ValueError(f"Duplicate resistor name detected in scope '{scope}': '{resolved_name}'")
 
         self.name = resolved_name
         self.scope = scope
-        L._instances[scope][resolved_name] = self
+        R._instances[scope][resolved_name] = self
 
+        # Nodes
         self.nodes["n+"] = self._format_node(node_p)
         self.nodes["n-"] = self._format_node(node_n)
 
+        # Params
         self._value = self._format_value(value)
-        self._mname = mname.name if mname else None
-        self._nt = self._format_value(nt)
+        self._ac = self._format_value(ac)
         self._m = self._format_value(m)
         self._scale = self._format_value(scale)
         self._temp = self._format_value(temp)
         self._dtemp = self._format_value(dtemp)
         self._tc1 = self._format_value(tc1)
         self._tc2 = self._format_value(tc2)
-        self._ic = self._format_value(ic)
+        self._noisy = self._validate_noisy(noisy)
+        self._mname = mname.name if mname else None
+        self._l = self._format_value(l)
+        self._w = self._format_value(w)
 
         self._doc = doc if doc else None
+        self.scope = scope
 
     # --- Properties ---
     @property
@@ -74,14 +73,9 @@ class L(SpiceElement, Nodes):
     def value(self, val): self._value = self._format_value(val)
 
     @property
-    def mname(self): return self._mname
-    @mname.setter
-    def mname(self, model): self._mname = model.name if model else None
-
-    @property
-    def nt(self): return self._nt
-    @nt.setter
-    def nt(self, val): self._nt = self._format_value(val)
+    def ac(self): return self._ac
+    @ac.setter
+    def ac(self, val): self._ac = self._format_value(val)
 
     @property
     def m(self): return self._m
@@ -114,9 +108,32 @@ class L(SpiceElement, Nodes):
     def tc2(self, val): self._tc2 = self._format_value(val)
 
     @property
-    def ic(self): return self._ic
-    @ic.setter
-    def ic(self, val): self._ic = self._format_value(val)
+    def noisy(self): return self._noisy
+    @noisy.setter
+    def noisy(self, val): self._noisy = self._validate_noisy(val)
+
+    @property
+    def mname(self): return self._mname
+    @mname.setter
+    def mname(self, model): self._mname = model.name if model else None
+
+    @property
+    def l(self): return self._l
+    @l.setter
+    def l(self, val): self._l = self._format_value(val)
+
+    @property
+    def w(self): return self._w
+    @w.setter
+    def w(self, val): self._w = self._format_value(val)
+
+    # --- Internals ---
+    def _validate_noisy(self, val):
+        if val is None:
+            return None
+        if val not in (0, 1):
+            raise ValueError(f"Resistor Error - Invalid NOISY value: {val}")
+        return val
 
     # --- Output ---
     def to_string(self) -> str:
@@ -128,30 +145,34 @@ class L(SpiceElement, Nodes):
             f'{self.value:<8}',
         ]
 
+        # Add mname inline if it exists
         if self.mname:
             parts.append(f'{self.mname:<8}')
 
         optional_fields = []
         if self.mname is None:
             optional_fields = [
-                ("nt", self.nt), ("m", self.m), ("scale", self.scale),
+                ("ac", self.ac), ("m", self.m), ("scale", self.scale),
                 ("temp", self.temp), ("dtemp", self.dtemp),
                 ("tc1", self.tc1), ("tc2", self.tc2),
-                ("ic", self.ic)
+                ("noisy", self.noisy)
             ]
         else:
             optional_fields = [
+                ("l", self.l), ("w", self.w),
                 ("temp", self.temp), ("dtemp", self.dtemp),
-                ("m", self.m), ("scale", self.scale),
-                ("ic", self.ic)
+                ("m", self.m), ("ac", self.ac), ("scale", self.scale),
+                ("noisy", self.noisy)
             ]
 
         extras = [f"{key}={val}" for key, val in optional_fields if val is not None]
+
         base_line = " ".join(parts)
 
         if not extras:
             return f"{doc_line}\n{base_line}" if doc_line else base_line
 
+        # Build continuation lines <= 40 chars
         lines = []
         current_line = "+ "
         for field in extras:
@@ -164,7 +185,7 @@ class L(SpiceElement, Nodes):
 
         netlist_block = f"{base_line}\n" + "\n".join(lines)
         return f"{doc_line}\n{netlist_block}" if doc_line else netlist_block
-
+    
     def to_line(self) -> str:
         parts = [
             f'{self.name}',
@@ -178,16 +199,17 @@ class L(SpiceElement, Nodes):
 
         if self.mname is None:
             optional_fields = [
-                ("nt", self.nt), ("m", self.m), ("scale", self.scale),
+                ("ac", self.ac), ("m", self.m), ("scale", self.scale),
                 ("temp", self.temp), ("dtemp", self.dtemp),
                 ("tc1", self.tc1), ("tc2", self.tc2),
-                ("ic", self.ic)
+                ("noisy", self.noisy)
             ]
         else:
             optional_fields = [
+                ("l", self.l), ("w", self.w),
                 ("temp", self.temp), ("dtemp", self.dtemp),
-                ("m", self.m), ("scale", self.scale),
-                ("ic", self.ic)
+                ("m", self.m), ("ac", self.ac), ("scale", self.scale),
+                ("noisy", self.noisy)
             ]
 
         extras = [f"{key}={val}" for key, val in optional_fields if val is not None]
