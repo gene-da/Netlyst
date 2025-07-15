@@ -31,16 +31,6 @@ bp_filter = SUBCKT(
 )
 print(bp_filter.to_string() + "\n")
 
-op_amp = SUBCKT(
-    name='Ideal Op-Amp',
-    nodes=['IN+', 'IN-', 'OUT', 0],
-    circuit=[
-        R("R1", "IN+", "OUT", "10k", doc="Feedback resistor", scope='subcircuit'),
-        R("R2", "IN-", "OUT", "10k", doc="Input resistor", scope='subcircuit'),
-        C("C1", "OUT", 0, "1u", doc="Output capacitor", scope='subcircuit')
-    ],
-    doc="Ideal operational amplifier subcircuit with feedback and input resistors."
-)
 # Top-level instantiation of subcircuit (as if used in a schematic)
 r3 = R("R1", "VIN", "IN", "100", doc="Input resistor to subcircuit")
 print(r3.to_string() + "\n")
