@@ -1,4 +1,4 @@
-from Netlist.Classes.DotCommands import MODEL
+from Netlist.Components import MODEL
 from typing import Optional, Union
 
 class CMOD(MODEL):
