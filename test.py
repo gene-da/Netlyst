@@ -12,6 +12,16 @@ title = TITLE(
 )
 print(title.to_string() + "\n")
 
+print(V(name=1, node_p=13, node_n=2, signal=SIN(vo=0.0, va=5.0, freq=1e3, td=0.0, theta=0.0, phase=0.0), doc="AC source for band-pass filter",
+))
+
+print(I(name=1, node_p=13, node_n=2, signal=SIN(vo=0.0, va=5.0, freq=1e3, td=0.0, theta=0.0, phase=0.0), doc="AC source for band-pass filter",
+))
+
+print(V('VIN', 3, 0, signal=EXP(-4, -1, '2n', '30n', '60n', '40n'), doc="Voltage source with exponential rise and fall",))
+
+print(V(name='VCLOCK', node_p=7, node_n=5, signal=PWL(0, -7, [(0, -7), ('10n', -7), ('11n', -3), ('17n', -3), ('18n', -7), ('50n', -7)], r=0, td='15n')))
+
 # Comment block
 comment = COMMENT("Instantiates BP_FILTER and supporting components", doc="Top-level circuit configuration")
 print(comment.to_string() + "\n")

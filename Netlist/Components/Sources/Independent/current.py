@@ -1,10 +1,13 @@
 from typing import Optional, Union
 from Netlist.Components import SpiceElement, Nodes
+from Netlist.Components.Sources.Independent.source_analysis import DCT, ACA, DISTOF
+from Netlist.Components.Sources.Independent.signals import*
+from .signals import Signal
 
 """
 IYYYYYYY N+ N- <<DC> DC/TRAN VALUE> <AC <ACMAG <ACPHASE>>>
 + <DISTOF1 <F1MAG <F1PHASE>>> <DISTOF2 <F2MAG <F2PHASE>>>
-"""
+""" 
 
 class I(SpiceElement, Nodes):
     _instances = {}
@@ -14,109 +17,109 @@ class I(SpiceElement, Nodes):
         name: Union[int, str],
         node_p: Union[int, str],
         node_n: Union[int, str],
-        dc: Optional[Union[float, int, str]] = None,
-        ac: Optional[Union[float, int, str]] = None,
-        acmag: Optional[Union[float, int, str]] = None,
-        acphase: Optional[Union[float, int, str]] = None,
-        distof1: Optional[str] = None,
-        f1mag: Optional[Union[float, int, str]] = None,
-        f1phase: Optional[Union[float, int, str]] = None,
-        distof2: Optional[str] = None,
-        f2mag: Optional[Union[float, int, str]] = None,
-        f2phase: Optional[Union[float, int, str]] = None,
-        value: Optional[Union[float, int, str]] = None,
+        dc: Optional[DCT] = None,
+        ac: Optional[ACA] = None,
+        distof1: Optional[DISTOF] = None,
+        distof2: Optional[DISTOF] = None,
+        signal: Optional[Signal] = None,
         scope: str = "global",
         doc: Optional[str] = None
     ) -> None:
         SpiceElement.__init__(self)
         Nodes.__init__(self)
 
-        resolved_name = name if isinstance(name, str) else f'I{name}'
+        if isinstance(name, str):
+            resolved_name = name
+        elif isinstance(name, int):
+            resolved_name = f'I{name}'
+        else:
+            raise TypeError(f"Invalid type for name: {type(name)}")
+
         if scope not in I._instances:
             I._instances[scope] = {}
-        if resolved_name in I._instances[scope]:
-            raise ValueError(f"Duplicate current source name in scope '{scope}': {resolved_name}")
-        I._instances[scope][resolved_name] = self
+        if resolved_name in I._instances[scope] and I._instances[scope][resolved_name] is not self:
+            raise ValueError(f"Duplicate current source name in scope '{scope}': '{resolved_name}'")
 
         self.name = resolved_name
         self.scope = scope
-        self._doc = doc
+        I._instances[scope][resolved_name] = self
 
         self.nodes["n+"] = self._format_node(node_p)
         self.nodes["n-"] = self._format_node(node_n)
 
-        self._dc = self._format_value(dc)
-        self._ac = self._format_value(ac)
-        self._acmag = self._format_value(acmag)
-        self._acphase = self._format_value(acphase)
+        self._dc = dc
+        self._ac = ac
         self._distof1 = distof1
-        self._f1mag = self._format_value(f1mag)
-        self._f1phase = self._format_value(f1phase)
         self._distof2 = distof2
-        self._f2mag = self._format_value(f2mag)
-        self._f2phase = self._format_value(f2phase)
-        self._value = self._format_value(value)
+        self._signal = signal
+        self._doc = doc
 
+    # --- Properties ---
+    @property
+    def dc(self) -> Optional[DCT]: 
+        return self._dc
+    @dc.setter
+    def dc(self, dc: Optional[DCT]) -> None: 
+        self._dc = dc
+
+    @property
+    def ac(self) -> Optional[ACA]: 
+        return self._ac
+    @ac.setter
+    def ac(self, ac: Optional[ACA]) -> None: 
+        self._ac = ac
+
+    @property
+    def distof1(self) -> Optional[DISTOF]: 
+        return self._distof1
+    @distof1.setter
+    def distof1(self, distof1: Optional[DISTOF]) -> None: 
+        self._distof1 = distof1
+
+    @property
+    def distof2(self) -> Optional[DISTOF]: 
+        return self._distof2
+    @distof2.setter
+    def distof2(self, distof2: Optional[DISTOF]) -> None: 
+        self._distof2 = distof2
+
+    @property
+    def signal(self) -> Optional[Signal]: 
+        return self._signal
+    @signal.setter
+    def signal(self, signal: Optional[Signal]) -> None: 
+        self._signal = signal
+
+    # --- Output ---
     def to_string(self) -> str:
         doc_line = f"* {self._doc}" if self._doc else ""
         parts = [
             f'{self.name:<8}',
             f'{self.nodes["n+"]:<8}',
-            f'{self.nodes["n-"]:<8}',
+            f'{self.nodes["n-"]:<8}'
         ]
 
-        if self._dc:
-            parts.append(str(self._dc))
-        elif self._value:
-            parts.append(str(self._value))
+        if self.dc: parts.append(f'{str(self.dc):<8}')
+        if self.ac: parts.append(f'{str(self.ac):<8}')
+        if self.distof1: parts.append(f'{str(self.distof1):<8}')
+        if self.distof2: parts.append(f'{str(self.distof2):<8}')
+        if self.signal: parts.append(f'{str(self.signal):<8}')
 
-        extras = []
-        if self._ac: extras.append(f"AC={self._ac}")
-        if self._acmag: extras.append(f"ACMAG={self._acmag}")
-        if self._acphase: extras.append(f"ACPHASE={self._acphase}")
-        if self._distof1: extras.append(f"DISTOF1={self._distof1}")
-        if self._f1mag: extras.append(f"F1MAG={self._f1mag}")
-        if self._f1phase: extras.append(f"F1PHASE={self._f1phase}")
-        if self._distof2: extras.append(f"DISTOF2={self._distof2}")
-        if self._f2mag: extras.append(f"F2MAG={self._f2mag}")
-        if self._f2phase: extras.append(f"F2PHASE={self._f2phase}")
-
-        base_line = " ".join(parts)
-        if not extras:
-            return f"{doc_line}\n{base_line}" if doc_line else base_line
-
-        lines = []
-        current = "+ "
-        for e in extras:
-            if len(current) + len(e) + 1 > 40:
-                lines.append(current.strip())
-                current = "+ "
-            current += e + " "
-        if current.strip() != "+":
-            lines.append(current.strip())
-
-        return f"{doc_line}\n{base_line}\n" + "\n".join(lines) if doc_line else f"{base_line}\n" + "\n".join(lines)
+        line = " ".join(parts)
+        return f"{doc_line}\n{line}" if doc_line else line
 
     def to_line(self) -> str:
         parts = [
-            self.name,
-            self.nodes["n+"],
-            self.nodes["n-"],
+            f'{self.name}',
+            f'{self.nodes["n+"]}',
+            f'{self.nodes["n-"]}'
         ]
-        if self._dc:
-            parts.append(str(self._dc))
-        elif self._value:
-            parts.append(str(self._value))
 
         extras = []
-        if self._ac: extras.append(f"AC={self._ac}")
-        if self._acmag: extras.append(f"ACMAG={self._acmag}")
-        if self._acphase: extras.append(f"ACPHASE={self._acphase}")
-        if self._distof1: extras.append(f"DISTOF1={self._distof1}")
-        if self._f1mag: extras.append(f"F1MAG={self._f1mag}")
-        if self._f1phase: extras.append(f"F1PHASE={self._f1phase}")
-        if self._distof2: extras.append(f"DISTOF2={self._distof2}")
-        if self._f2mag: extras.append(f"F2MAG={self._f2mag}")
-        if self._f2phase: extras.append(f"F2PHASE={self._f2phase}")
+        if self.dc: extras.append(str(self.dc))
+        if self.ac: extras.append(str(self.ac))
+        if self.distof1: extras.append(str(self.distof1))
+        if self.distof2: extras.append(str(self.distof2))
+        if self.signal: extras.append(str(self.signal))
 
         return " ".join(parts + extras)

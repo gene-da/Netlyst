@@ -1,6 +1,5 @@
-from typing import Optional, Union, Tuple
+from typing import Optional, Union
 from dataclasses import dataclass
-from Netlist.Components import SpiceElement, Nodes
 from Utilities.Converter import Conversion
 
 """
@@ -40,7 +39,7 @@ class ACA():
     def __init__(
         self,
         ac_mag: Union[float, int, str],
-        ac_phase: Optional[Union[float, int, str]],
+        ac_phase: Optional[Union[float, int, str]] = None,
     ) -> None:
         """AC Analysis Parameters
 
@@ -56,15 +55,18 @@ class ACA():
             self.ac_phase = None
         
     def __str__(self) -> str:
-        return f"AC {self.ac_mag} {self.ac_phase}"
+        parts = [f"AC {self.ac_mag}"]
+        if self.ac_phase is not None:
+            parts.append(f"{self.ac_phase}")
+        return " ".join(parts)
 
 @dataclass
 class DISTOF():
     def __init__(
         self,
         iter: int,
-        mag: Union[float, int, str],
-        phase: Union[float, int, str],
+        mag: Optional[Union[float, int, str]] = None,
+        phase: Optional[Union[float, int, str]] = None,
     ) -> None:
         """Distortion Analysis Parameters
 
@@ -78,11 +80,16 @@ class DISTOF():
             raise ValueError("DISTOF must be either 1 or 2")
         
         self.iter = iter
-        self.mag = Conversion.spice(mag)
-        self.phase = Conversion.spice(phase)
+        self.mag = Conversion.spice(mag) if mag is not None else None
+        self.phase = Conversion.spice(phase) if phase is not None else None
         
     def __str__(self) -> str:
-        return f"DISTOF{self.iter} {self.mag} {self.phase}"
+        parts = [f"DISTOF{self.iter}"]
+        if self.mag is not None:
+            parts.append(str(self.mag))
+        if self.phase is not None:
+            parts.append(str(self.phase))
+        return " ".join(parts)
 
 if __name__ == "__main__":
     # Example usage

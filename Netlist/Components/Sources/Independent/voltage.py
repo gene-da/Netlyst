@@ -1,107 +1,124 @@
-from typing import Optional, Union,Tuple
+from typing import Optional, Union
 from Netlist.Components import SpiceElement, Nodes
-from Netlist.Components.Sources.Independent.source_analysis import DCT, ACA, DISTOF
-from Netlist.Components.Sources.Independent.signals import*
+from .source_analysis import DCT, ACA, DISTOF
+from .signals import Signal
 
 """
-VXXXXXXX N+ N- ((DC) DC/TRAN VALUE>) (AC (ACMAG ((ACPHASE)))
-+ (DISTOF1 (F1MAG (F1PHASE))) (DISTOF2 (F2MAG (F2PHASE)))
+VXXXXXXX N+ N- <<DC> DC/TRAN VALUE> <AC <ACMAG <ACPHASE>>>
++ <DISTOF1 <F1MAG <F1PHASE>>> <DISTOF2 <F2MAG <F2PHASE>>>
 """ 
 
 class V(SpiceElement, Nodes):
+    _instances = {}
+
     def __init__(
         self,
         name: Union[int, str],
-        node_p: Union[str, int],
-        node_n: Union[str, int],
+        node_p: Union[int, str],
+        node_n: Union[int, str],
         dc: Optional[DCT] = None,
         ac: Optional[ACA] = None,
         distof1: Optional[DISTOF] = None,
         distof2: Optional[DISTOF] = None,
+        signal: Optional[Signal] = None,
+        scope: str = "global",
+        doc: Optional[str] = None
     ) -> None:
-        """Voltage Source Class
-
-        Args:
-            name (str): Name of the voltage source.
-            node_p (str): Positive node of the voltage source.
-            node_n (str): Negative node of the voltage source.
-            dc (Optional[DCT], optional): DC analysis parameters. Defaults to None.
-            ac (Optional[ACA], optional): AC analysis parameters. Defaults to None.
-            distof1 (Optional[DISTOF], optional): First distortion analysis parameters. Defaults to None.
-            distof2 (Optional[DISTOF], optional): Second distortion analysis parameters. Defaults to None.
-        """
         SpiceElement.__init__(self)
         Nodes.__init__(self)
+
         if isinstance(name, str):
             resolved_name = name
         elif isinstance(name, int):
             resolved_name = f'V{name}'
         else:
             raise TypeError(f"Invalid type for name: {type(name)}")
+
+        if scope not in V._instances:
+            V._instances[scope] = {}
+        if resolved_name in V._instances[scope] and V._instances[scope][resolved_name] is not self:
+            raise ValueError(f"Duplicate voltage source name in scope '{scope}': '{resolved_name}'")
+
         self.name = resolved_name
-        
+        self.scope = scope
+        V._instances[scope][resolved_name] = self
+
         self.nodes["n+"] = self._format_node(node_p)
         self.nodes["n-"] = self._format_node(node_n)
-        
-        self.dc = dc if dc is None else dc
-        self.ac = ac if ac is None else ac
-        self.distof1 = distof1 if distof1 is None else distof1
-        self.distof2 = distof2 if distof2 is None else distof2
-        
+
+        self._dc = dc
+        self._ac = ac
+        self._distof1 = distof1
+        self._distof2 = distof2
+        self._signal = signal
+        self._doc = doc
+
+    # --- Properties ---
+    @property
+    def dc(self) -> Optional[DCT]: 
+        return self._dc
+    @dc.setter
+    def dc(self, dc: Optional[DCT]) -> None: 
+        self._dc = dc
+
+    @property
+    def ac(self) -> Optional[ACA]: 
+        return self._ac
+    @ac.setter
+    def ac(self, ac: Optional[ACA]) -> None: 
+        self._ac = ac
+
+    @property
+    def distof1(self) -> Optional[DISTOF]: 
+        return self._distof1
+    @distof1.setter
+    def distof1(self, distof1: Optional[DISTOF]) -> None: 
+        self._distof1 = distof1
+
+    @property
+    def distof2(self) -> Optional[DISTOF]: 
+        return self._distof2
+    @distof2.setter
+    def distof2(self, distof2: Optional[DISTOF]) -> None: 
+        self._distof2 = distof2
+
+    @property
+    def signal(self) -> Optional[Signal]: 
+        return self._signal
+    @signal.setter
+    def signal(self, signal: Optional[Signal]) -> None: 
+        self._signal = signal
+
+    # --- Output ---
     def to_string(self) -> str:
-        """Convert the voltage source to a SPICE string representation.
+        doc_line = f"* {self._doc}" if self._doc else ""
+        parts = [
+            f'{self.name:<8}',
+            f'{self.nodes["n+"]:<8}',
+            f'{self.nodes["n-"]:<8}'
+        ]
 
-        Returns:
-            str: SPICE string representation of the voltage source.
-        """
-        result = f"{self.name:<8} {self.nodes['n+']:<8} {self.nodes['n-']:<8}"
-        if self.dc:
-            result += f" {self.dc.__str__():<8}"
-        if self.ac:
-            result += f" {self.ac.__str__():<8}"
-        if self.distof1:
-            result += f" {self.distof1.__str__():<16}"
-        if self.distof2:
-            result += f" {self.distof2.__str__():<16}"
-        return result
-    
+        if self.dc: parts.append(f'{str(self.dc):<8}')
+        if self.ac: parts.append(f'{str(self.ac):<8}')
+        if self.distof1: parts.append(f'{str(self.distof1):<8}')
+        if self.distof2: parts.append(f'{str(self.distof2):<8}')
+        if self.signal: parts.append(f'{str(self.signal):<8}')
+
+        line = " ".join(parts)
+        return f"{doc_line}\n{line}" if doc_line else line
+
     def to_line(self) -> str:
-        """Convert the voltage source to a SPICE line representation.
+        parts = [
+            f'{self.name}',
+            f'{self.nodes["n+"]}',
+            f'{self.nodes["n-"]}'
+        ]
 
-        Returns:
-            str: SPICE line representation of the voltage source.
-        """
-        result = f"{self.name} {self.nodes['n+']} {self.nodes['n-']}"
-        
-        # If AC or distortion parameters are present, only include DC
-        if self.ac or self.distof1 or self.distof2:
-            if self.dc:
-                result += f" {self.dc}"
-        else:
-            # If no AC or distortion, include DC if present
-            if self.dc:
-                result += f" {self.dc}"
-        
-        return result
+        extras = []
+        if self.dc: extras.append(str(self.dc))
+        if self.ac: extras.append(str(self.ac))
+        if self.distof1: extras.append(str(self.distof1))
+        if self.distof2: extras.append(str(self.distof2))
+        if self.signal: extras.append(str(self.signal))
 
-if __name__ == "__main__":
-    from Netlist.Components import R
-    
-    print(R(1, 1, 2, '1k'))
-    # Example usage
-    print(V(
-        name=1,
-        node_p=1,
-        node_n=0,
-        dc=DCT(dc_tran=5.0),
-        ac=ACA(ac_mag=1.0, ac_phase=0.0),
-        distof1=DISTOF(iter=1, mag=0.1, phase=30),
-        distof2=DISTOF(iter=2, mag=0.05, phase=45)
-    ))
-    print(V(
-        name='VCC',
-        node_p=13,
-        node_n=2,
-        dc=DCT(dc_tran=0.001),
-        ac=ACA(ac_mag=1, ac_phase=0),
-    ))
+        return " ".join(parts + extras)

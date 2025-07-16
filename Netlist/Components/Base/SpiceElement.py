@@ -18,7 +18,10 @@ class SpiceElement(ABC):
     def __str__(self) -> str:
         return self.to_string()
     
-    def _format_value(self, val: Optional[Union[int, float, str]]) -> Optional[str]:
+    def _format_value(
+        self, 
+        val: Optional[Union[int, float, str]]
+    ) -> Optional[str]:
         if val is None:
             return None
         if isinstance(val, str):

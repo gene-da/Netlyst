@@ -68,67 +68,91 @@ class R(SpiceElement, Nodes):
 
     # --- Properties ---
     @property
-    def value(self): return self._value
+    def value(self) -> Optional[str]: 
+        return self._value
     @value.setter
-    def value(self, val): self._value = self._format_value(val)
+    def value(self, val) -> None: 
+        self._value = self._format_value(val)
 
     @property
-    def ac(self): return self._ac
+    def ac(self) -> Optional[str]: 
+        return self._ac
     @ac.setter
-    def ac(self, val): self._ac = self._format_value(val)
+    def ac(self, val) -> None: 
+        self._ac = self._format_value(val)
 
     @property
-    def m(self): return self._m
+    def m(self) -> Optional[str]: 
+        return self._m
     @m.setter
-    def m(self, val): self._m = self._format_value(val)
+    def m(self, val) -> None: 
+        self._m = self._format_value(val)
 
     @property
-    def scale(self): return self._scale
+    def scale(self) -> Optional[str]: 
+        return self._scale
     @scale.setter
-    def scale(self, val): self._scale = self._format_value(val)
+    def scale(self, val) -> None: 
+        self._scale = self._format_value(val)
 
     @property
-    def temp(self): return self._temp
+    def temp(self) -> Optional[str]: 
+        return self._temp
     @temp.setter
-    def temp(self, val): self._temp = self._format_value(val)
+    def temp(self, val) -> None: 
+        self._temp = self._format_value(val)
 
     @property
-    def dtemp(self): return self._dtemp
+    def dtemp(self) -> Optional[str]: 
+        return self._dtemp
     @dtemp.setter
-    def dtemp(self, val): self._dtemp = self._format_value(val)
+    def dtemp(self, val) -> None: 
+        self._dtemp = self._format_value(val)
 
     @property
-    def tc1(self): return self._tc1
+    def tc1(self) -> Optional[str]: 
+        return self._tc1
     @tc1.setter
-    def tc1(self, val): self._tc1 = self._format_value(val)
+    def tc1(self, val) -> None: 
+        self._tc1 = self._format_value(val)
 
     @property
-    def tc2(self): return self._tc2
+    def tc2(self) -> Optional[str]: 
+        return self._tc2
     @tc2.setter
-    def tc2(self, val): self._tc2 = self._format_value(val)
+    def tc2(self, val) -> None: 
+        self._tc2 = self._format_value(val)
 
     @property
-    def noisy(self): return self._noisy
+    def noisy(self) -> Optional[int]: 
+        return self._noisy
     @noisy.setter
-    def noisy(self, val): self._noisy = self._validate_noisy(val)
+    def noisy(self, val) -> None: 
+        self._noisy = self._validate_noisy(val)
 
     @property
-    def mname(self): return self._mname
+    def mname(self) -> Optional[str]: 
+        return self._mname
     @mname.setter
-    def mname(self, model): self._mname = model.name if model else None
+    def mname(self, model) -> None: 
+        self._mname = model.name if model else None
 
     @property
-    def l(self): return self._l
+    def l(self) -> Optional[str]: 
+        return self._l
     @l.setter
-    def l(self, val): self._l = self._format_value(val)
+    def l(self, val) -> None: 
+        self._l = self._format_value(val)
 
     @property
-    def w(self): return self._w
+    def w(self) -> Optional[str]: 
+        return self._w
     @w.setter
-    def w(self, val): self._w = self._format_value(val)
+    def w(self, val) -> None: 
+        self._w = self._format_value(val)
 
     # --- Internals ---
-    def _validate_noisy(self, val):
+    def _validate_noisy(self, val) -> Optional[int]:
         if val is None:
             return None
         if val not in (0, 1):
