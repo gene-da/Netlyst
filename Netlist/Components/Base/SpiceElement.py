@@ -3,7 +3,7 @@ from typing import Union, Optional
 from Utilities.Converter import Conversion
 
 class SpiceElement(ABC):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         
     @abstractmethod
@@ -42,7 +42,6 @@ class Nodes:
             if index.strip() == "0":
                 return "GND"
             return index.strip()
-        return str(index)
 
         return f"N{index:03d}"
             
