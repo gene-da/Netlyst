@@ -57,7 +57,7 @@ class PULSE(Signal):
         self.np = Conversion.spice(np)
 
     def to_string(self) -> str:
-        return f"PULSE {self.v1} {self.v2} {self.td}s {self.tr}s {self.tf}s {self.pw}s {self.per}s {self.np}"
+        return f"PULSE({self.v1} {self.v2} {self.td}s {self.tr}s {self.tf}s {self.pw}s {self.per}s {self.np})"
     
     @property
     def v1(self) -> str:
@@ -303,9 +303,9 @@ class PWL(Signal):
         points_str = " ".join(f"{t}s {v}" for t, v in points)
         extras = []
         if self.r:
-            extras.append(f"R={self.r}")
+            extras.append(f"r={self.r}")
         if self.td:
-            extras.append(f"TD={self.td}s")
+            extras.append(f"td={self.td}s")
         extra_str = " ".join(extras)
         return f'PWL({points_str}) {extra_str}'.strip()
     
@@ -549,42 +549,60 @@ class AM(Signal):
         self._phasec = Conversion.spice(val) if val is not None else None
         
 class TRNOISE(Signal):
-    """Transient Noise waveform definition.
-
-    Describes noise behavior with power, spectral parameters, and RTS (Random Telegraph Signal)
-    behavior via capture and emission times.
     """
+    Transient Noise waveform definition for SPICE voltage/current sources.
+
+    Models noise with amplitude, time/spectral characteristics, and optional RTS (Random Telegraph Signal)
+    behavior using capture and emission timing parameters.
+
+    Format:
+        TRNOISE(na nt nalpha namp [rtsam rtscapt rtsemt])
+    """
+
     def __init__(
         self,
         na: Union[float, int, str],
         nt: Union[float, int, str],
         nalpha: Union[float, int, str],
         namp: Union[float, int, str],
-        rtsam: Union[float, int, str],
-        rtscapt: Union[float, int, str],
-        rtsemt: Union[float, int, str],
+        rtsam: Optional[Union[float, int, str]] = None,
+        rtscapt: Optional[Union[float, int, str]] = None,
+        rtsemt: Optional[Union[float, int, str]] = None,
     ) -> None:
         """
         Args:
             na (Union[float, int, str]): Noise amplitude.
-            nt (Union[float, int, str]): Noise temperature or time.
-            nalpha (Union[float, int, str]): Spectral exponent/parameter.
-            namp (Union[float, int, str]): Amplitude of noise.
-            rtsam (Union[float, int, str]): RTS amplitude.
-            rtscapt (Union[float, int, str]): RTS capture time.
-            rtsemt (Union[float, int, str]): RTS emission time.
+            nt (Union[float, int, str]): Noise temperature or time constant.
+            nalpha (Union[float, int, str]): Spectral exponent (e.g., 0 = white, 1 = pink).
+            namp (Union[float, int, str]): Amplitude scaling factor for the noise signal.
+            rtsam (Optional[Union[float, int, str]]): RTS signal amplitude.
+            rtscapt (Optional[Union[float, int, str]]): RTS capture time (s).
+            rtsemt (Optional[Union[float, int, str]]): RTS emission time (s).
         """
         super().__init__()
-        self.na = Conversion.spice(na)
-        self.nt = Conversion.spice(nt)
-        self.nalpha = Conversion.spice(nalpha)
-        self.namp = Conversion.spice(namp)
-        self.rtsam = Conversion.spice(rtsam)
-        self.rtscapt = Conversion.spice(rtscapt)
-        self.rtsemt = Conversion.spice(rtsemt)
-        
+        self.na       = Conversion.spice(na)
+        self.nt       = Conversion.spice(nt)
+        self.nalpha   = Conversion.spice(nalpha)
+        self.namp     = Conversion.spice(namp)
+        self.rtsam    = Conversion.spice(rtsam)    if rtsam    is not None else None
+        self.rtscapt  = Conversion.spice(rtscapt)  if rtscapt  is not None else None
+        self.rtsemt   = Conversion.spice(rtsemt)   if rtsemt   is not None else None
+
     def to_string(self) -> str:
-        return f'TRNOISE({self.na} {self.nt} {self.nalpha} {self.namp} {self.rtsam} {self.rtscapt} {self.rtsemt})'
+        """
+        Return a full SPICE netlist-compatible string with optional RTS parameters included.
+
+        Returns:
+            str: SPICE-formatted TRNOISE() source signal.
+        """
+        values = [self.na, self.nt, self.nalpha, self.namp]
+        if self.rtsam is not None:
+            values.append(self.rtsam)
+        if self.rtscapt is not None:
+            values.append(self.rtscapt)
+        if self.rtsemt is not None:
+            values.append(self.rtsemt)
+        return f"TRNOISE({ ' '.join(map(str, values)) })"
     
 class TRRANDOM(Signal):
     """Transient Random waveform.
