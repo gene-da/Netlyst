@@ -40,10 +40,7 @@ from Netlist.Components.Sources.Independent.voltage             import *
 from Netlist.Components.Sources.Independent.source_analysis     import *
 from Netlist.Components.Sources.Independent.signals             import *
 
-from Netlist.Components.Sources.Linear.cccs                     import *
-from Netlist.Components.Sources.Linear.ccvs                     import *
-from Netlist.Components.Sources.Linear.vccs                     import *
-from Netlist.Components.Sources.Linear.vcvs                     import *
+from Netlist.Components.Sources.Linear.linear                   import *
 
 # Standard Components
 from Netlist.Components.Standard.capacitor                      import *

@@ -27,7 +27,7 @@ class SpiceElement(ABC):
         if isinstance(val, str):
             return Conversion.spice(val)
         return Conversion.spice(float(val))
-
+    
 class Nodes:
     def __init__(self) -> None:
         self.nodes = {}

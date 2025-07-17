@@ -28,20 +28,3 @@ class FUNC(SpiceElement):
 
     def to_line(self) -> str:
         return f"{self.indent} {self.expression}".strip()
-
-
-if __name__ == "__main__":
-    f = FUNC(
-        indent=".FUNC",
-        expression="Gain(x, y) = x * y + 1",
-        doc="Defines a simple gain function"
-    )
-
-    print(f.to_string())
-    # Output:
-    # * Defines a simple gain function
-    # .FUNC Gain(x, y) = x * y + 1
-
-    print(f.to_line())
-    # Output:
-    # .FUNC Gain(x, y) = x * y + 1

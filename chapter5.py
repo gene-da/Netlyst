@@ -1,8 +1,9 @@
 from Netlist.Components import *
 
 # Chapter 4 - Voltage and Current Sources
-
-print(TITLE('Independent Sources Example'))
+title = 'Chapter 4 Voltage and Current Sources test examples'
+description = "Chapter 4 Voltage and Current Sources test examples\nThis chapter covers the use of voltage and current sources in SPICE simulations, including independent sources, dependent sources, and various signal types."
+print(TITLE(title, description))
 
 # 4.1 Independent Sources for Voltage or Current
 print('\n* 4.1 Independent Sources for Voltage or Current')
@@ -50,5 +51,26 @@ print(I('IALL', 10, 0, dc=DCT(0), signal=TRNOISE('1m', '1u', 1.0, '0.1m', '15m',
 print('\n* 4.1.8 Random Voltage Source')
 print(V('VR1', 1, 0, dc=DCT(0), signal=TRRANDOM(2, '10m', 0, 1)))
 print(V('V1', 1, 0, dc=DCT(0), signal=TRRANDOM(1, '1u', '0.5u', '0.5', '0.5')))
+
+# 4.2 Linear Dependent Sources
+print('\n* 4.2 Linear Dependent Sources')
+
+# 4.2.1 Linear Voltage-Controlled Current Sources (VCCS)
+print('* 4.2.1 Linear Voltage-Controlled Current Sources (VCCS)')
+print(G(1, 2, 0, 5, 0, 0.1, m=2))
+
+# 4.2.2 Linear Voltage-Controlled Voltage Sources (VCVS)
+print('\n* 4.2.2 Linear Voltage-Controlled Voltage Sources (VCVS)')
+print(E(1, 2, 3, 14, 1, 2.0))
+
+# 4.2.3 Linear Current-Controlled Current Sources (CCCS)
+print('\n* Linear Current-Controlled Current Sources (CCCS)')
+vsens = V('VSENS', 5, 0, dc=DCT(0.1))
+print(F(1, 13, 5, vsens, 5, m=2))
+
+# 4.2.4 Linear Current-Controlled Voltage Sources (CCVS)
+print('\n* Linear Current-Controlled Voltage Sources (CCVS)')
+vz = V('VZ', 5, 0, dc=DCT(0.1))
+print(H('X', 5, 17, vz, '0.5k'))
 
 print(END())

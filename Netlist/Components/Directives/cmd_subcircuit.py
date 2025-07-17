@@ -1,4 +1,5 @@
-from Netlist.Components import SpiceElement, Nodes, PARAM
+from Netlist.Components import SpiceElement, Nodes, PARAM, Parameter
+from Netlist.Components.Directives.start_end_line import COMMENT
 from typing import Optional, List, Union
 
 class SUBCKT(SpiceElement, Nodes):
@@ -7,7 +8,7 @@ class SUBCKT(SpiceElement, Nodes):
     def __init__(
         self, name: str, 
         nodes: List[Union[int, str]],
-        parameters: Optional[PARAM] = None,
+        params: Optional[List[Parameter]] = None,
         circuit: List[SpiceElement] = [], 
         doc: Optional[str] = None,
         scope: str = "global"
@@ -30,10 +31,12 @@ class SUBCKT(SpiceElement, Nodes):
             raise ValueError(f"Duplicate resistor name detected in scope '{scope}': '{resolved_name}'")
 
         self.name = resolved_name
-        self.parameters = parameters
 
-        for element in nodes:
-            self.nodes[self._format_node(element)] = self._format_node(element)
+        for node in nodes:
+            format_node = self._format_node(node)
+            self.nodes[format_node] = format_node
+            
+        self.params = params if params else None
 
         self.circuit = circuit
         self._doc = doc if doc else None
@@ -44,20 +47,89 @@ class SUBCKT(SpiceElement, Nodes):
     def doc(self, val): self._doc = str(val) if val else None
 
     def to_string(self) -> str:
-        doc_line = f"* {self._doc}" if self._doc else ""
-        base_line = f".SUBCKT {self.name} " + " ".join(self.nodes.values())
-
-        if self.parameters:
-            param_str = self.parameters.to_line() if hasattr(self.parameters, "to_line") else str(self.parameters)
-            base_line += f" {param_str}"
-
-        body_lines = [element.to_string() for element in self.circuit]
-        end_line = ".ENDS " + self.name
-
-        block = "\n".join([base_line] + body_lines + [end_line])
-        return f"{doc_line}\n{block}" if doc_line else block
-
+        lines = []
+        
+        if self._doc:
+            lines.append(f'{COMMENT(self._doc)}')
+            lines.append('*')
+        
+        first_line = [f'.subckt {self.name}']
+        
+        for node in self.nodes:
+            first_line.append(f'{self.nodes[node]}')
+            
+        if self.params:
+            for param in self.params:
+                first_line.append(f'{param}')
+                
+        lines.append(" ".join(first_line))
+        
+        if self.circuit:
+            for element in self.circuit:
+                lines.append(str(element))
+                
+        lines.append(f'.ends {self.name}')
+        
+        return '\n'.join(lines)
+    
     def to_line(self) -> str:
         # Flat single-line subcircuit reference
         node_list = " ".join(self.nodes.values())
         return f"X{self.name} {node_list} {self.name}"
+
+class X(SpiceElement, Nodes):
+    _instances = {}
+    
+    def __init__(
+        self,
+        name:                   Union[str, int],
+        nodes:                  List[Union[int, str]],
+        subckt:                 SUBCKT,
+        params:                 Optional[List[Parameter]] = None,
+        scope:                  str = "global",
+        doc:                    Optional[str] = None
+    ) -> None:
+        SpiceElement.__init__(self)
+        Nodes.__init__(self)
+        
+        if isinstance(name, str):
+            resolved_name = name if name.startswith("X") else f"X{name}"
+        elif isinstance(name, int):
+            resolved_name = f"X{name}"
+        else:
+            raise TypeError(f"Invalid type for name: {type(name)}")
+
+        if scope not in X._instances:
+            X._instances[scope] = {}
+        if resolved_name in X._instances[scope] and X._instances[scope][resolved_name] is not self:
+            raise ValueError(f"Duplicate VCCS name in scope '{scope}': '{resolved_name}'")
+        
+        for node in nodes:
+            format_node = self._format_node(node)
+            self.nodes[format_node] = format_node
+        
+        self.name            = resolved_name
+        self.scope           = scope
+        self.subckt          = subckt
+        self.params          = params if params else None
+        self._doc            = doc if doc else None
+
+    def to_string(self) -> str:
+        lines = []
+        
+        if self._doc:
+            lines.append(f'{COMMENT(self._doc)}')
+            
+        first_line = [f'{self.name}']
+        
+        for node in self.nodes:
+            first_line.append(f'{self.nodes[node]}')
+        
+        first_line.append(f'{self.subckt.name}')
+        if self.params:
+            for param in self.params:
+                first_line.append(f'{param}')
+
+        lines.append(" ".join(first_line))
+        
+        return '\n'.join(lines)

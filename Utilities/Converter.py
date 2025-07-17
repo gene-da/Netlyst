@@ -8,29 +8,22 @@ class Conversion:
     def spice(value: Union[int, float, str], precision: int = 2) -> str:
         """
         Converts numeric input (int, float, or metric string) into a clean SPICE-compatible
-        string with proper metric suffixes.
+        string with proper metric suffixes. If the value is a raw string expression like '{2*rval}',
+        it is passed through unchanged.
 
         Args:
             value (int | float | str): The input value to format.
             precision (int): Decimal rounding precision before suffix.
 
         Returns:
-            str: SPICE-compatible string like '4.7u', '22k', '1Meg'
+            str: SPICE-compatible string like '4.7u', '22k', '1Meg' or raw string passed through.
 
         Raises:
             ValueError: If the input string format is invalid.
         """
         spice_prefixes = {
-            -15: 'f',
-            -12: 'p',
-            -9:  'n',
-            -6:  'u',
-            -3:  'm',
-            0:   '',
-            3:   'k',
-            6:   'Meg',
-            9:   'G',
-            12:  'T'
+            -15: 'f', -12: 'p', -9: 'n', -6: 'u', -3: 'm',
+            0: '',   3: 'k',   6: 'Meg', 9: 'G', 12: 'T'
         }
 
         suffix_multipliers = {
@@ -52,9 +45,15 @@ class Conversion:
                 raise ValueError(f"Unrecognized metric suffix: '{suffix}'")
             return float(num_str) * multiplier
 
-        # Normalize input
+        # Short-circuit pass-through for string expressions
         if isinstance(value, str):
-            value = parse_str_metric(value)
+            if "{" in value or "}" in value:
+                return value
+            try:
+                value = parse_str_metric(value)
+            except ValueError:
+                return value  # Assume it's a safe string literal, pass through
+
         elif isinstance(value, (int, float)):
             value = float(value)
         else:
@@ -63,13 +62,11 @@ class Conversion:
         if value == 0:
             return "0"
 
-        # Determine proper metric prefix
         exponent = int(math.floor(math.log10(abs(value)) / 3) * 3)
-        exponent = max(min(exponent, 12), -15)  # Clamp to SPICE-supported
+        exponent = max(min(exponent, 12), -15)
         scaled = value / (10 ** exponent)
         rounded = round(scaled, precision)
 
-        # Clean up trailing zeros
         if math.isclose(rounded, round(rounded), abs_tol=10**-precision):
             rounded_str = str(int(round(rounded)))
         else:
