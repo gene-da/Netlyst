@@ -48,7 +48,7 @@ print(I('IALL', 10, 0, dc=DCT(0), signal=TRNOISE('1m', '1u', 1.0, '0.1m', '15m',
 
 # 4.1.8 Random voltage source
 print('\n* 4.1.8 Random Voltage Source')
-print(V('VR1', 1, 0, dc=DCT(0), signal=TRRANDOM(2, '10m', (0, 1))))
-print(V('V1', 1, 0, dc=DCT(0), signal=TRRANDOM(1, '1u', ('0.5u', 0.5, 0.5))))
+print(V('VR1', 1, 0, dc=DCT(0), signal=TRRANDOM(2, '10m', 0, 1)))
+print(V('V1', 1, 0, dc=DCT(0), signal=TRRANDOM(1, '1u', '0.5u', '0.5', '0.5')))
 
 print(END())

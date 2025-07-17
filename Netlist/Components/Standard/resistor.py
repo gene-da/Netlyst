@@ -6,32 +6,32 @@ class R(SpiceElement, Nodes):
 
     def __init__(
         self,
-        name: Union[int, str],
+        name:   Union[int, str],
         node_p: Union[int, str],
         node_n: Union[int, str],
-        value: Optional[Union[float, int, str]] = None,
-        ac: Optional[Union[float, int, str]] = None,
-        m: Optional[Union[float, int, str]] = None,
-        scale: Optional[Union[float, int, str]] = None,
-        temp: Optional[Union[float, int, str]] = None,
-        dtemp: Optional[Union[float, int, str]] = None,
-        tc1: Optional[Union[float, int, str]] = None,
-        tc2: Optional[Union[float, int, str]] = None,
-        noisy: Optional[float] = None,
-        mname: Optional[MODEL] = None,
-        l: Optional[Union[float, int, str]] = None,
-        w: Optional[Union[float, int, str]] = None,
-        scope: str = "global",
-        doc: Optional[str] = None
+        value:  Optional[Union[float, int, str]] = None,
+        ac:     Optional[Union[float, int, str]] = None,
+        m:      Optional[Union[float, int, str]] = None,
+        scale:  Optional[Union[float, int, str]] = None,
+        temp:   Optional[Union[float, int, str]] = None,
+        dtemp:  Optional[Union[float, int, str]] = None,
+        tc1:    Optional[Union[float, int, str]] = None,
+        tc2:    Optional[Union[float, int, str]] = None,
+        noisy:  Optional[float] = None,
+        mname:  Optional[MODEL] = None,
+        l:      Optional[Union[float, int, str]] = None,
+        w:      Optional[Union[float, int, str]] = None,
+        scope:  str = "global",
+        doc:    Optional[str] = None
     ) -> None:
         SpiceElement.__init__(self)
         Nodes.__init__(self)
 
         # Name resolution
         if isinstance(name, str):
-            resolved_name = name
+            resolved_name  = name
         elif isinstance(name, int):
-            resolved_name = f'R{name}'
+            resolved_name  = f'R{name}'
         else:
             raise TypeError(f"Invalid type for name: {type(name)}")
 
@@ -41,30 +41,30 @@ class R(SpiceElement, Nodes):
         if resolved_name in R._instances[scope] and R._instances[scope][resolved_name] is not self:
             raise ValueError(f"Duplicate resistor name detected in scope '{scope}': '{resolved_name}'")
 
-        self.name = resolved_name
-        self.scope = scope
+        self.name          = resolved_name
+        self.scope         = scope
         R._instances[scope][resolved_name] = self
 
         # Nodes
-        self.nodes["n+"] = self._format_node(node_p)
-        self.nodes["n-"] = self._format_node(node_n)
+        self.nodes["n+"]   = self._format_node(node_p)
+        self.nodes["n-"]   = self._format_node(node_n)
 
         # Params
-        self._value = self._format_value(value)
-        self._ac = self._format_value(ac)
-        self._m = self._format_value(m)
-        self._scale = self._format_value(scale)
-        self._temp = self._format_value(temp)
-        self._dtemp = self._format_value(dtemp)
-        self._tc1 = self._format_value(tc1)
-        self._tc2 = self._format_value(tc2)
-        self._noisy = self._validate_noisy(noisy)
-        self._mname = mname.name if mname else None
-        self._l = self._format_value(l)
-        self._w = self._format_value(w)
+        self._value        = self._format_value(value)
+        self._ac           = self._format_value(ac)
+        self._m            = self._format_value(m)
+        self._scale        = self._format_value(scale)
+        self._temp         = self._format_value(temp)
+        self._dtemp        = self._format_value(dtemp)
+        self._tc1          = self._format_value(tc1)
+        self._tc2          = self._format_value(tc2)
+        self._noisy        = self._validate_noisy(noisy)
+        self._mname        = mname.name if mname else None
+        self._l            = self._format_value(l)
+        self._w            = self._format_value(w)
 
-        self._doc = doc if doc else None
-        self.scope = scope
+        self._doc          = doc if doc else None
+        self.scope         = scope
 
     # --- Properties ---
     @property
