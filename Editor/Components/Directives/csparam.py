@@ -1,0 +1,24 @@
+from ..Base import *
+from typing import List, Optional
+
+class CSPARAM(SpiceElement):
+    def __init__(
+        self,
+        ident: str,
+        expr: str,
+        doc: Optional[str] = None,
+    ) -> None:
+        super().__init__(
+            name='csparam',
+            doc=doc,
+        )
+        
+        self._params = f'{ident}={expr}'
+        
+    def to_string(self) -> str:
+        doc = ' '.join(self._format_doc_block())
+        if doc:
+            return f'{doc}\n.csparam {self._params}'
+
+    def to_line(self) -> str:
+        return f'.csparam {self._params}'
