@@ -1,4 +1,4 @@
-from ..Base.spice_element import SpiceElement
+from ...Base import *
 from typing import Optional, Union
 from enum import Enum
 
@@ -17,9 +17,7 @@ class AC(SpiceElement):
         doc: Optional[str] = None,
     ) -> None:
         super().__init__(
-            name='ac_analysis', 
             doc=doc, 
-            scope='global'
         )
         
         if not isinstance(variation, Points):
@@ -28,14 +26,18 @@ class AC(SpiceElement):
         self._pts = self._format_value(pts)
         self._fstart = self._format_value(fstart)
         self._fstop = self._format_value(fstop)
+        
+        self.id.etype = SpiceElementType.ANALYSIS
 
     @property
     def variation(self) -> Points:
         return self._variation
     @variation.setter
     def variation(self, value: Points) -> None:
+        if not isinstance(value, Points):
+            raise TypeError(f"Invalid type for variation: {type(value)}. Expected Points Enum.")
         self._variation = value
-        
+
     @property
     def pts(self) -> Union[str, int, float]:
         return self._pts

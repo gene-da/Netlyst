@@ -1,4 +1,4 @@
-from Editor.Components.Base.spice_element import SpiceElement
+from ..Base import *
 from typing import Optional, Union
 
 class COMMENT(SpiceElement):
@@ -16,6 +16,8 @@ class COMMENT(SpiceElement):
             doc=comment,
             scope='global',
         )
+        
+        self.id.etype = SpiceElementType.OTHER
         
     def to_string(self) -> str:
         lines = []

@@ -9,14 +9,12 @@ class TITLE(SpiceElement):
         title: str,
         doc: Optional[str] = None,
     ) -> None:
-        super().__init__(
-            name='title',
-            doc=doc,
-            scope='global',
-        )
+        super().__init__(doc=doc)
         self.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.title = title.strip() if title else 'Untitled Circuit'
-        
+
+        self.id.etype = SpiceElementType.STRUCTURE
+
     def to_string(self) -> str:
         lines = []
         lines.append('*' * self._width)

@@ -1,4 +1,4 @@
 
-from .Netlist.netlist import Netlist
+from .Netlist.netlist import *
 
 __all__ = [name for name in globals() if not name.startswith("_")]

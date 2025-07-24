@@ -13,6 +13,8 @@ class END(SpiceElement):
             scope=scope,
         )
         
+        self.id.etype = SpiceElementType.STRUCTURE
+        
     def to_string(self) -> str:
         lines = []
         if self._doc:

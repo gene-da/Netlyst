@@ -1,7 +1,32 @@
 from typing import Optional, Union, List, Tuple
 from textwrap import wrap
+from dataclasses import dataclass
+from enum import Enum
 
 from Utilities.Converter import Conversion
+
+class SpiceElementType(Enum):
+    STRUCTURE = 'structure'
+    COMMAND = 'command'
+    PARAMETER = 'parameter'
+    ANALYSIS = 'analysis'
+    CONTROL = 'control'
+    MODEL = 'model'
+    DEVICE = 'device'
+    OTHER = 'other'
+    SOURCE = 'source'
+    NOT_IMPLEMENTED = 'not_implemented'
+
+@dataclass
+class ID:
+    cname: str
+    iname: str
+    etype: SpiceElementType
+    scope: str
+    
+    @property
+    def string(self) -> str:
+        return f"{self.etype.name}.{self.cname.upper()}.{self.iname.upper()}.{self.scope.upper()}"
 
 class SpiceElement:
     _instances = {}
@@ -17,26 +42,49 @@ class SpiceElement:
         self._doc = doc
         self._width = width
         
-        # self.comp_title = comp_title or self.__class__.__name__.upper()
-        self.name = name if name is not None else self.__class__.__name__.lower()
+        id_name = self._resolve_self(
+            prefix=comp_prefix,
+            name=name,
+            scope=scope
+        )
         
-        self._scope = scope
+        self.id = ID(
+            cname=self.__class__.__name__.lower(),
+            iname=id_name,
+            etype=SpiceElementType.NOT_IMPLEMENTED,
+            scope=scope
+        )
         
-        if comp_prefix and name is not None:
-            if isinstance(name, str):
-                self.name = name if name.startswith(comp_prefix) else f"{comp_prefix}{name}"
-            elif isinstance(name, int):
-                self.name = f"{comp_prefix}{name}"
-            else:
-                raise TypeError(f"Invalid type for name: {type(name)}")
+        self._name = self.id.iname
+    
+    @property
+    def id_name(self) -> str:
+        return self.id.iname
 
+    def _resolve_self(self, prefix: Optional[str], name: Optional[Union[str, int]], scope: str) -> None:
+        return_name = name if name is not None else self.__class__.__name__.lower()
+        
+        if prefix and name is not None:
+            if isinstance(name, str):
+                if name.startswith(prefix):
+                    return_name = name
+                else:
+                    return_name = f'{prefix}{name}'
+            elif isinstance(name, int):
+                return_name = f'{prefix}{name}'
+            else:
+                raise TypeError(f"Invalid type for name in class {self.__class__.__name__}: {type(name)}")
+            
             if scope not in SpiceElement._instances:
                 SpiceElement._instances[scope] = {}
-            if self.name in SpiceElement._instances[scope] and SpiceElement._instances[scope][self.name] is not self:
-                raise ValueError(f"Duplicate {self.__class__.__name__.upper()} name in scope '{scope}': '{self.name}'")
-
-            SpiceElement._instances[scope][self.name] = self
             
+            if return_name in SpiceElement._instances[scope] and SpiceElement._instances[scope][return_name] is not self:
+                raise ValueError(f"Duplicate {self.__class__.__name__.upper()} name in scope '{scope}': '{return_name}'")
+            
+            SpiceElement._instances[scope][return_name] = self
+
+        return return_name
+
     def _wrap_lines(self, text: str) -> list[str]:
         wrapped = []
         for line in text.splitlines():
@@ -74,19 +122,37 @@ class SpiceElement:
         if current_line.strip() != prefix:
             lines.append(current_line.rstrip())
         return '\n'.join(lines)
+    def _get_headers(self) -> List[str]:
+        """Returns a list of header fields for the SpiceElement."""
+        return ['id_name', 'nodes', 'value', 'mname']
     
-    def _build_header(self, include: Tuple[str, ...]) -> List[str]:
+    def _build_header(self) -> List[str]:
         header: List[str] = []
-        for key, value in vars(self).items():
-            param = key.lstrip('_')
-            if param in include and value is not None:
-                if param == 'nodes':
-                    for node_key, node_value in value.items():
-                        header.append(f"{node_value}")
-                else:
-                    header.append(f'{value}')
-                    
+        include = self._get_headers()
+
+        for field in include:
+            value = None
+
+            # Prefer public @property if it exists
+            if hasattr(self.__class__, field) and isinstance(getattr(self.__class__, field), property):
+                value = getattr(self, field)
+
+            # Then try _field (private instance var)
+            elif hasattr(self, f'_{field}'):
+                value = getattr(self, f'_{field}')
+
+            # Fallback: try raw attribute (public var, less preferred)
+            elif hasattr(self, field):
+                value = getattr(self, field)
+
+            # Handle special known keys like 'nodes' explicitly
+            if field == 'nodes' and isinstance(value, dict):
+                header.extend(str(v) for v in value.values())
+            elif value is not None:
+                header.append(str(value))
+
         return header
+
         
     def _build_body(self, include: Tuple[str, ...]) -> List[str]:
         items: List[str] = []
@@ -128,16 +194,17 @@ class SpiceElement:
     
     def to_line(self):
         line: List[str] = []
-        header_vals = ('name', 'value', 'mname', 'nodes')
-        line.extend(self._build_header(include=header_vals))
+        header_vals = ['id_name', 'nodes', 'value', 'mname']
+
+        line.extend(self._build_header())
         line.extend(self._build_body(include=self._include()))
         
         return ' '.join(line)
 
     def to_string(self) -> str:
         doc = '\n'.join(self._format_doc_block())
-        header_vals = ('name', 'value', 'mname', 'nodes')
-        header = ' '.join(f'{line:<8}' for line in self._build_header(include=header_vals))
+        header_vals = ['id_name', 'nodes', 'value', 'mname']
+        header = ' '.join(f'{line:<8}' for line in self._build_header())
         
         body = self._build_body(include=self._include())
         body = self._wrap_continuation_line(' '.join(body))

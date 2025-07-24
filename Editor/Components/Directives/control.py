@@ -13,6 +13,8 @@ class CONTROL(SpiceElement):
             doc=doc,
         )
         self._controls = controls
+        
+        self.id.etype = SpiceElementType.CONTROL
 
     @property
     def controls(self) -> List[str]:
@@ -24,15 +26,13 @@ class CONTROL(SpiceElement):
     def to_string(self) -> str:
         doc = ' '.join(self._format_doc_block())
         if doc:
-            return f'{doc}\n.control {self._controls}'
-        lines = [f'.control']
-        lines.extend(self._controls)
-        lines.append('.endc')
+            return f'{doc}\n.control {self.to_line()}'
         
-        return f'{doc}\n{'\n'.join(lines)}'
+        return f'{doc}\n{self.to_line()}'
 
     def to_line(self) -> str:
         lines = [f'.control']
-        lines.extend(self._controls)
+        for line in self._controls:
+            lines.append(f'    {line}')
         lines.append('.endc')
         return '\n'.join(lines)
