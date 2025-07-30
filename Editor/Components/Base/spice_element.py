@@ -1,7 +1,8 @@
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List, Tuple, Dict
 from textwrap import wrap
 from dataclasses import dataclass
 from enum import Enum
+from .node import Nodes
 
 from Utilities.Converter import Conversion
 
@@ -16,6 +17,29 @@ class SpiceElementType(Enum):
     OTHER = 'other'
     SOURCE = 'source'
     NOT_IMPLEMENTED = 'not_implemented'
+    
+def body(thing):
+    """Decorator to mark a method or property getter as part of the body."""
+    if isinstance(thing, property):
+        # If it's a property, decorate the fget instead
+        if thing.fget:
+            thing.fget.is_body = True
+        return thing
+    else:
+        # If it's a function, just tag it
+        thing.is_body = True
+        return thing
+
+
+def header(thing):
+    """Decorator to mark a method or property getter as a header."""
+    if isinstance(thing, property):
+        if thing.fget:
+            thing.fget.is_header = True
+        return thing
+    else:
+        thing.is_header = True
+        return thing
 
 @dataclass
 class ID:
@@ -50,16 +74,10 @@ class SpiceElement:
         
         self.id = ID(
             cname=self.__class__.__name__.lower(),
-            iname=id_name,
+            iname=self._resolve_self(comp_prefix, name, scope),
             etype=SpiceElementType.NOT_IMPLEMENTED,
             scope=scope
         )
-        
-        self._name = self.id.iname
-    
-    @property
-    def id_name(self) -> str:
-        return self.id.iname
 
     def _resolve_self(self, prefix: Optional[str], name: Optional[Union[str, int]], scope: str) -> None:
         return_name = name if name is not None else self.__class__.__name__.lower()
@@ -98,12 +116,6 @@ class SpiceElement:
                 wrapped.append(f"* {indent}{l}")
         return wrapped
     
-    def _format_doc_block(self) -> list[str]:
-        block = []
-        if self._doc:
-            block.extend(self._wrap_lines(self._doc))
-        return block
-    
     def _format_value(self, val: Optional[Union[int, float, str]]) -> Optional[str]:
         if val is None:
             return None
@@ -122,45 +134,6 @@ class SpiceElement:
         if current_line.strip() != prefix:
             lines.append(current_line.rstrip())
         return '\n'.join(lines)
-    def _get_headers(self) -> List[str]:
-        """Returns a list of header fields for the SpiceElement."""
-        return ['id_name', 'nodes', 'value', 'mname']
-    
-    def _build_header(self) -> List[str]:
-        header: List[str] = []
-        include = self._get_headers()
-
-        for field in include:
-            value = None
-
-            # Prefer public @property if it exists
-            if hasattr(self.__class__, field) and isinstance(getattr(self.__class__, field), property):
-                value = getattr(self, field)
-
-            # Then try _field (private instance var)
-            elif hasattr(self, f'_{field}'):
-                value = getattr(self, f'_{field}')
-
-            # Fallback: try raw attribute (public var, less preferred)
-            elif hasattr(self, field):
-                value = getattr(self, field)
-
-            # Handle special known keys like 'nodes' explicitly
-            if field == 'nodes' and isinstance(value, dict):
-                header.extend(str(v) for v in value.values())
-            elif value is not None:
-                header.append(str(value))
-
-        return header
-
-        
-    def _build_body(self, include: Tuple[str, ...]) -> List[str]:
-        items: List[str] = []
-        for key, value in vars(self).items():
-            param = key.lstrip('_')
-            if param in include and value is not None:
-                items.append(f'{param}={value}')
-        return items
     
     def _validate_noisy(self, val) -> Optional[int]:
         if val is None:
@@ -168,58 +141,71 @@ class SpiceElement:
         if val not in (0, 1):
             raise ValueError(f"Resistor Error - Invalid NOISY value: {val}")
         return val
-    
-    @property
-    def key(self) -> str:
-        """Returns a key that can be used in circuit dictionaries."""
-        if self._scope == 'global':
-            return self.name
-        return f"{self.name}.{self._scope}"
 
-    @classmethod
-    def parse_key(cls, key: str) -> tuple[str, str]:
-        """
-        Parses a dictionary-style key like 'R1' or 'R1.sub' into (name, scope).
-        Defaults to 'global' scope if not specified.
-        """
-        if '.' in key:
-            name, scope = key.split('.', 1)
-        else:
-            name, scope = key, 'global'
-        return name, scope
-
-    def _include(self) -> Tuple[str, ...]:
-        """Defines which attributes to include in the body."""
-        raise NotImplementedError(f'[{self.__class__.__name__.upper()}] Subclasses must implement `_include()` method.')
+    def get_properties(self, prop: str):
+        result = {}
+        for cls in self.__class__.__mro__:  # Walks R, Base, object
+            for name, attr in cls.__dict__.items():
+                if isinstance(attr, property):
+                    if prop == 'body' and getattr(attr.fget, 'is_body', False):
+                        result[name] = getattr(self, name)
+                    elif prop == 'header' and getattr(attr.fget, 'is_header', False):
+                        result[name] = getattr(self, name)
+        return result
     
-    def to_line(self):
+
+
+    def to_line(self) -> str:
         line: List[str] = []
-        header_vals = ['id_name', 'nodes', 'value', 'mname']
+        headers = self.get_properties('header')
+        bodies = self.get_properties('body')
 
-        line.extend(self._build_header())
-        line.extend(self._build_body(include=self._include()))
-        
+        line.append(f'{self.id.iname}')
+
+        if isinstance(self, Nodes):
+            for key, value in self._nodes.items():
+                line.append(str(value))
+
+        if headers:
+            for key, value in headers.items():
+                if value is not None:
+                    line.append(str(value))
+
+        if bodies:
+            for key, value in bodies.items():
+                if value is not None:
+                    line.append(f'{key}={value}')
+
         return ' '.join(line)
 
-    def to_string(self) -> str:
-        doc = '\n'.join(self._format_doc_block())
-        header_vals = ['id_name', 'nodes', 'value', 'mname']
-        header = ' '.join(f'{line:<8}' for line in self._build_header())
-        
-        body = self._build_body(include=self._include())
-        body = self._wrap_continuation_line(' '.join(body))
-        
-        output = []
-        if doc:
-            output.append(doc)
-        
-        output.append(header)
-        
-        if body:
-            output.append(body)
 
-        return '\n'.join(output)
-    
+    def to_string(self) -> str:
+        lines: List[str] = []
+        headers = self.get_properties('header')
+        bodies = self.get_properties('body')
+
+        if self._doc:
+            lines.extend(self._wrap_lines(self._doc))
+
+        header: List[str] = []
+        if headers:
+            header.append(f'{self.id.iname:<8}')
+            if isinstance(self, Nodes):
+                for key, value in self._nodes.items():
+                    header.append(f'{value:<8}')
+            for key, value in headers.items():
+                if value is not None:
+                    header.append(f'{value:<8}')
+            lines.append(' '.join(header))
+
+        if bodies:
+            body_lines = [f"{key}={value}" for key, value in bodies.items() if value is not None]
+            if body_lines:
+                lines.append(self._wrap_continuation_line('\n'.join(body_lines)).rstrip())
+
+        return '\n'.join(lines)
+
+
     def __str__(self) -> str:
         """String representation of the SpiceElement.
 
@@ -229,4 +215,4 @@ class SpiceElement:
         return self.to_string()
     
     def __repr__(self) -> str:
-        return f"[{self.__class__.__name__}-{self._scope}-{self.name}]"
+        return self.id.string

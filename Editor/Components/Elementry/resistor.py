@@ -33,7 +33,7 @@ class R(SpiceElement, Nodes, HasTemp):
             doc=doc,
             scope=scope,
         )
-        Nodes.__init__(self, node_n=node_n, node_p=node_p)
+        Nodes.__init__(self, node_p=node_p, node_n=node_n)
 
         self._value = self._format_value(value)
         self._ac = self._format_value(ac)
@@ -51,6 +51,7 @@ class R(SpiceElement, Nodes, HasTemp):
         
         self.id.etype = SpiceElementType.DEVICE
     
+    @header
     @property
     def value(self) -> Optional[Union[float, int, str]]:
         return self._value
@@ -58,6 +59,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def value(self, value: Optional[Union[float, int, str]]) -> None:
         self._value = self._format_value(value)
         
+    @body
     @property
     def ac(self) -> Optional[Union[float, int, str]]:
         return self._ac
@@ -65,6 +67,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def ac(self, value: Optional[Union[float, int, str]]) -> None:
         self._ac = self._format_value(value)
         
+    @body
     @property
     def m(self) -> Optional[Union[float, int, str]]:
         return self._m
@@ -72,6 +75,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def m(self, value: Optional[Union[float, int, str]]) -> None:
         self._m = self._format_value(value)
         
+    @body
     @property
     def scale(self) -> Optional[Union[float, int, str]]:
         return self._scale
@@ -79,6 +83,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def scale(self, value: Optional[Union[float, int, str]]) -> None:
         self._scale = self._format_value(value)
         
+    @body
     @property
     def temp(self) -> Optional[Union[float, int, str]]:
         return self._temp
@@ -86,6 +91,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def temp(self, value: Optional[Union[float, int, str]]) -> None:
         self._temp = self._format_value(value)
         
+    @body
     @property
     def dtemp(self) -> Optional[Union[float, int, str]]:
         return self._dtemp
@@ -93,6 +99,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def dtemp(self, value: Optional[Union[float, int, str]]) -> None:
         self._dtemp = self._format_value(value)
         
+    @body
     @property
     def expression(self) -> Optional[str]:
         return self._expression
@@ -100,6 +107,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def expression(self, value: Optional[str]) -> None:
         self._expression = value
         
+    @body
     @property
     def tc1(self) -> Optional[Union[float, int, str]]:
         return self._tc1
@@ -107,6 +115,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def tc1(self, value: Optional[Union[float, int, str]]) -> None:
         self._tc1 = self._format_value(value)
 
+    @body
     @property
     def tc2(self) -> Optional[Union[float, int, str]]:
         return self._tc2
@@ -114,6 +123,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def tc2(self, value: Optional[Union[float, int, str]]) -> None:
         self._tc2 = self._format_value(value)
 
+    @body
     @property
     def noisy(self) -> Optional[float]:
         return self._noisy
@@ -121,6 +131,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def noisy(self, value: Optional[float]) -> None:
         self._noisy = self._validate_noisy(value)
         
+    @header
     @property
     def mname(self) -> Optional[str]:
         return self._mname
@@ -128,6 +139,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def mname(self, value: Optional[str]) -> None:
         self._mname = value
         
+    @body
     @property
     def l(self) -> Optional[Union[float, int, str]]:
         return self._l
@@ -135,6 +147,7 @@ class R(SpiceElement, Nodes, HasTemp):
     def l(self, value: Optional[Union[float, int, str]]) -> None:
         self._l = self._format_value(value)
 
+    @body
     @property
     def w(self) -> Optional[Union[float, int, str]]:
         return self._w
@@ -142,13 +155,4 @@ class R(SpiceElement, Nodes, HasTemp):
     def w(self, value: Optional[Union[float, int, str]]) -> None:
         self._w = self._format_value(value)
 
-    def _include(self) -> Tuple[str, ...]:
-        if self._expression:
-            return ('expression', 'tc1', 'tc2', 'noisy')
-        
-        elif self._mname:
-            return ('l', 'w', 'temp', 'dtemp', 'm', 'ac', 'scale', 'noisy')
-            
-        elif self._mname is None:
-            return ('ac', 'm', 'scale', 'temp', 'dtemp', 'noisy', 'tc1', 'tc2')
 

@@ -10,19 +10,23 @@ control = [
     'plot vcc#branch',
     'rusage all'
 ]
+
+doc = 'Blorfanex quindle rathmop ziggulant drebskorn flanterly opmivix trellagorn snubwicket framoodle gortanzil wexomph.'
         
 circuit = [
-    TITLE(title='Test Circuit', doc='This is a test circuit title.'),
+    TITLE(title='Test Circuit', doc=doc),
     COMMENT('This is a test comment block.'),
-    MODEL(name='BC451', mtype='bjt', model='IS=1e-14 BF=100'),
+    MODEL(name='BC451', mtype='bjt', model='IS=1e-14 BF=100', doc=doc),
     MODEL(name='BC451', mtype='bjt', model='IS=1e-14 BF=100', scope='local'),
-    R(name='R1', node_p=2, node_n=3, value=1000),
+    R(name='R1', node_p=2, node_n=3, value=1000, doc=doc),
     COMMENT('This is another test comment block. The following components are part of the circuit.'),
     R(name='R1', node_p=2, node_n=3, value=1000, scope='local'),
-    CSPARAM(ident='pippo', expr=5, doc='This is a test CSPARAM directive.'),
-    AC(variation=Points.dec, pts=100, fstart=1e3, fstop=1e6, doc='AC analysis from 1kHz to 1MHz'),
-    CONTROL(controls=control, doc='Control commands for the simulation'),
-    V(name='V1', node_p=1, node_n=0, dc_tran=5, ac_mag=1, ac_phase=0, doc='Voltage source with DC and AC values'),
+    CSPARAM(ident='pippo', expr=5, doc=doc),
+    AC(variation=Points.dec, pts=100, fstart=1e3, fstop=1e6, doc=doc),
+    CONTROL(controls=control, doc=doc),
+    V(name='V1', node_p=1, node_n=0, dc_tran=5, ac_mag=1, ac_phase=0, doc=doc),
+    V(name='VCC', node_p=10, node_n=0, dc_tran=6, doc=doc),
+    V('VIN', 13, 2, 0.001, 1),
     END(),
 ]
 
@@ -51,7 +55,7 @@ printt('Testing and Observing ID property')
 print(f'{'':4}{'Component':<10}\t{'ID String':<50}')
 print(f'{'':4}{'\u2500'*10}\t{'\u2500'*50}')
 for element in circuit:
-    print(f'{'':4}{element.id.cname:<10}\t{element.id.string:<50}')
+    print(f'{'':4}{element.id.iname:<10}\t{element.id.string:<50}')
 
 printt('Testing Grouping by ID Type')
 
@@ -82,6 +86,9 @@ for element in circuit:
         grouped[SpiceElementType.DEVICE].append(element)
     
     if group == SpiceElementType.OTHER:
+        grouped[SpiceElementType.DEVICE].append(element)
+        
+    if group == SpiceElementType.SOURCE:
         grouped[SpiceElementType.DEVICE].append(element)
 
 for name, elements in grouped.items():

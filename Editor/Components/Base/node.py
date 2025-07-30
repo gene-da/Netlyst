@@ -2,9 +2,9 @@ from typing import Union, Optional
 
 class Nodes:
     def __init__(self, **kwargs) -> None:
-        self.nodes = {}
+        self._nodes = {}
         for key, value in kwargs.items():
-            self.nodes[key] = self._format_node(value)
+            self._nodes[key] = self._format_node(value)
 
     def _format_node(self, index: Union[int, str]) -> str:
         """

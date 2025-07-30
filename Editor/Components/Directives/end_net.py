@@ -8,7 +8,6 @@ class END(SpiceElement):
         scope: str = 'global',
     ) -> None:
         super().__init__(
-            name='end_netlist',
             doc=doc,
             scope=scope,
         )

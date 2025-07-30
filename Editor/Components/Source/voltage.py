@@ -7,7 +7,7 @@ from ..Base import *
 from .source import *
 from typing import Optional, Union
 
-class V(SpiceElement, Nodes, Source):
+class V(SpiceElement, Nodes):
     def __init__(
         self,
         name: Union[str, int],
@@ -20,7 +20,7 @@ class V(SpiceElement, Nodes, Source):
         f1_phase: Optional[Union[float, int, str]] = None,
         f2_mag: Optional[Union[float, int, str]] = None,
         f2_phase: Optional[Union[float, int, str]] = None,
-        td_value: Optional[TimeDependentSource] = None,
+        td_value: Optional[IndependentSource] = None,
         doc: Optional[str] = None,
         scope: str = 'global',
     ) -> None:
@@ -31,8 +31,8 @@ class V(SpiceElement, Nodes, Source):
             doc=doc,
             scope=scope,
         )
-        Nodes.__init__(self, node_n=node_n, node_p=node_p)
-        
+        Nodes.__init__(self, node_p=node_p, node_n=node_n)
+
         self._dc_tran = dc_tran
         self._ac_mag = ac_mag
         self._ac_phase = ac_phase
@@ -40,10 +40,10 @@ class V(SpiceElement, Nodes, Source):
         self._f1_phase = f1_phase
         self._f2_mag = f2_mag
         self._f2_phase = f2_phase
-        self._td_value = td_value.string if td_value else None
+        self._td_value = str(td_value) if td_value else None
         
         self.id.etype = SpiceElementType.SOURCE
-        
+            
     @property
     def dc_tran(self) -> Optional[Union[float, int, str]]:
         return self._dc_tran    
@@ -92,14 +92,47 @@ class V(SpiceElement, Nodes, Source):
     @f2_phase.setter
     def f2_phase(self, value: Union[float, int, str]) -> None:
         self._f2_phase = value
-    
+        
     @property
     def td_value(self) -> Optional[str]:
         return self._td_value
     @td_value.setter
-    def td_value(self, value: TimeDependentSource) -> None:
-        self._td_value = value.string if value else None
+    def td_value(self, value: Optional[IndependentSource]) -> None:
+        if value is None:
+            self._td_value = None
+        else:
+            self._td_value = str(value)
         
-    def _get_headers(self):
-        return ['id_name', 'nodes', 'dc_tran', 'ac_mag', 'ac_phase', 'f1_mag', 'f1_phase', 'f2_mag', 'f2_phase', 'td_value']
+    @header
+    @property
+    def output(self) -> str:
+        output = []
+        if self._dc_tran:
+            if self._ac_mag or self._ac_phase or self._f1_mag or self._f1_phase or self._f2_mag or self._f2_phase:
+                output.append(f'{self.dc_tran}')
+            else:
+                output.append(f'"DC {self.dc_tran}"')
+                
+        if self._ac_mag:
+            output.append(f'AC {self._ac_mag}')
+            if self._ac_phase:
+                output.append(f'{self._ac_phase}')
+                
+        if self._td_value:
+            output.append(f'{self._td_value}')
+                
+        if self._f1_mag and self._td_value is None:
+            app = [f'DISTOF1 {self._f2_mag}']
+            if self._f2_phase:
+                app.append(f'{self._f2_phase}')
+            out = ' '.join(app)
+            output.append(f'{out:<20}')
+
+        if self._f2_mag and self._td_value is None:
+            app = [f'DISTOF2 {self._f2_mag}']
+            if self._f2_phase:
+                app.append(f'{self._f2_phase}')
+            out = ' '.join(app)
+            output.append(f'{out:<20}')
         
+        return ' '.join(output)

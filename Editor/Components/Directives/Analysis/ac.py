@@ -60,9 +60,8 @@ class AC(SpiceElement):
         self._fstop = self._format_value(value)
 
     def to_string(self) -> str:
-        doc = ' '.join(self._format_doc_block())
-        if doc:
-            return f'{doc}\n.ac {self._variation.value} {self._pts} {self._fstart} {self._fstop}'
+        if self._doc:
+            return f'{"\n".join(self._wrap_lines(self._doc))}\n.ac {self._variation.value} {self._pts} {self._fstart} {self._fstop}'
         return f'.ac {self._variation.value} {self._pts} {self._fstart} {self._fstop}'
 
     def to_line(self):

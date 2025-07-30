@@ -48,7 +48,7 @@ class MODEL(SpiceElement):
         lines = []
         
         if self._doc:
-            lines.extend(self._format_doc_block())
+            lines.extend(self._wrap_lines(self._doc))
 
         header = f'{".model":<8} {self._name:<8} {self._type:<8}'
         lines.append(header)
@@ -56,8 +56,8 @@ class MODEL(SpiceElement):
         lines.append(self._wrap_continuation_line(self._model))
         return "\n".join(lines)
     
-    def _include(self) -> tuple[str, ...]:
-        return ('',)
+    # def _include(self) -> tuple[str, ...]:
+    #     return ('',)
 
     def to_line(self) -> str:
         return f'.model {self._name} {self._type} ({self._model})'

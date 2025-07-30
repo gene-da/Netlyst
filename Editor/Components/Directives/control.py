@@ -24,11 +24,10 @@ class CONTROL(SpiceElement):
         self._controls = value
 
     def to_string(self) -> str:
-        doc = ' '.join(self._format_doc_block())
-        if doc:
-            return f'{doc}\n.control {self.to_line()}'
-        
-        return f'{doc}\n{self.to_line()}'
+        if self._doc:
+            return f'{"\n".join(self._wrap_lines(self._doc))}\n{self.to_line()}'
+        else:
+            return f'.control {self.to_line()}'
 
     def to_line(self) -> str:
         lines = [f'.control']
