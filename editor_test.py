@@ -12,6 +12,9 @@ control = [
 ]
 
 doc = 'Blorfanex quindle rathmop ziggulant drebskorn flanterly opmivix trellagorn snubwicket framoodle gortanzil wexomph.'
+
+vsens = V(name='VSENS', node_p=13, node_n=5, doc=doc)
+vz = V(name='VZ', node_p=5, node_n=17, doc=doc)
         
 circuit = [
     TITLE(title='Test Circuit', doc=doc),
@@ -27,6 +30,15 @@ circuit = [
     V(name='V1', node_p=1, node_n=0, dc_tran=5, ac_mag=1, ac_phase=0, doc=doc),
     V(name='VCC', node_p=10, node_n=0, dc_tran=6, doc=doc),
     V('VIN', 13, 2, 0.001, 1),
+    G(1, 2, 0, 5, 0, 0.1, 0.01),
+    E(1, 2, 3, 14, 1, 2.0),
+    F(1, 13, 5, vsens, 5, 2),
+    H('X', 5, 17, vz, '0.5K'),
+    B('B1', 0, 1, i='cos(v(1))+sin(v(2))'),
+    B('B2', 0, 1, v='ln(cos(log(v(1,2)^2)))-v(3)^4+v(2)^v(1)'),
+    B('B3', 3, 4, i='17'),
+    B('B4', 3, 4, v='exp(pi^i(vdd))'),
+    B('B5', 2, 0, v='V(1) < {Vlow} ? {Vlow} : V(1) > {Vhigh} ? {Vhigh} : V(1)'),
     END(),
 ]
 

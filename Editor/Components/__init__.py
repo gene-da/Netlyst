@@ -10,5 +10,8 @@ from .Elementry import *
 # Source components for SPICE netlist
 from .Source import *
 
+# Behavioral components for SPICE netlist
+from .Behavioral import *
+
 
 __all__ = [name for name in globals() if not name.startswith("_")]

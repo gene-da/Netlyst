@@ -11,7 +11,7 @@ class SourceType(Enum):
     SING_FREQ_FM = 'SFFM'
     AMP_MOD = 'AM'
     TR_NOISE = 'TRNOISE'
-    RAND_VOLT = 'TRRANDOM'
+    RAND_VOLT = 'trrandom'
     EXTERNAL = 'external'
     RF_PORT = 'portnum'
     
@@ -25,11 +25,14 @@ class IndependentSource:
         self.source_str: str
 
     def _set_source_str(self, args: List[str]) -> None:
-        self.source_str = ' '.join(map(str, args))
-    
+        self.source_str = ' '.join(str(a) for a in args if a is not None)
+
     def to_string(self) -> str:
         if self.source_type == SourceType.EXTERNAL or self.source_type == SourceType.RF_PORT:
             return f'{self.source_type.value} {self.source_str}'
+        
+        if self.source_type == SourceType.RAND_VOLT:
+            return f'{self.source_type.value} ({self.source_str})'
         
         return f'{self.source_type.value}({self.source_str})'
     
