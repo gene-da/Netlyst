@@ -64,6 +64,7 @@ for element in circuit:
         print(element.to_line())
 
 printt('Testing and Observing ID property')
+
 print(f'{'':4}{'Component':<10}\t{'ID String':<50}')
 print(f'{'':4}{'\u2500'*10}\t{'\u2500'*50}')
 for element in circuit:

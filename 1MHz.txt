@@ -1,0 +1,184 @@
+───────────────────────────────────────[  Frequency: 1MHz  ]────────────────────────────────────────
+
+───────────────────────────────────────────[  L1: 10nH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [    2.53uF    ]
+L/C Reactance                                                                       [   62.83mΩ    ]
+RC Time Constant                                                                    [   126.65us   ]
+RL Time Constant                                                                    [    200ps     ]
+Bandwidth (Output)                                                                  [  795.77MHz   ]
+
+───────────────────────────────────────────[  L1: 20nH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [    1.27uF    ]
+L/C Reactance                                                                       [   125.66mΩ   ]
+RC Time Constant                                                                    [   63.33us    ]
+RL Time Constant                                                                    [    400ps     ]
+Bandwidth (Output)                                                                  [  397.89MHz   ]
+
+───────────────────────────────────────────[  L1: 40nH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   633.26nF   ]
+L/C Reactance                                                                       [   251.33mΩ   ]
+RC Time Constant                                                                    [   31.66us    ]
+RL Time Constant                                                                    [    800ps     ]
+Bandwidth (Output)                                                                  [  198.94MHz   ]
+
+───────────────────────────────────────────[  L1: 50nH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   506.61nF   ]
+L/C Reactance                                                                       [   314.16mΩ   ]
+RC Time Constant                                                                    [   25.33us    ]
+RL Time Constant                                                                    [     1ns      ]
+Bandwidth (Output)                                                                  [  159.15MHz   ]
+
+───────────────────────────────────────────[  L1: 80nH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   316.63nF   ]
+L/C Reactance                                                                       [   502.65mΩ   ]
+RC Time Constant                                                                    [   15.83us    ]
+RL Time Constant                                                                    [    1.6ns     ]
+Bandwidth (Output)                                                                  [   99.47MHz   ]
+
+──────────────────────────────────────────[  L1: 100nH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   253.3nF    ]
+L/C Reactance                                                                       [   628.32mΩ   ]
+RC Time Constant                                                                    [   12.67us    ]
+RL Time Constant                                                                    [     2ns      ]
+Bandwidth (Output)                                                                  [   79.58MHz   ]
+
+──────────────────────────────────────────[  L1: 200nH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   126.65nF   ]
+L/C Reactance                                                                       [    1.26Ω     ]
+RC Time Constant                                                                    [    6.33us    ]
+RL Time Constant                                                                    [     4ns      ]
+Bandwidth (Output)                                                                  [   39.79MHz   ]
+
+──────────────────────────────────────────[  L1: 400nH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   63.33nF    ]
+L/C Reactance                                                                       [    2.51Ω     ]
+RC Time Constant                                                                    [    3.17us    ]
+RL Time Constant                                                                    [     8ns      ]
+Bandwidth (Output)                                                                  [   19.89MHz   ]
+
+──────────────────────────────────────────[  L1: 800nH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   31.66nF    ]
+L/C Reactance                                                                       [    5.03Ω     ]
+RC Time Constant                                                                    [    1.58us    ]
+RL Time Constant                                                                    [     16ns     ]
+Bandwidth (Output)                                                                  [   9.95MHz    ]
+
+──────────────────────────────────────────[  L1: 500nH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   50.66nF    ]
+L/C Reactance                                                                       [    3.14Ω     ]
+RC Time Constant                                                                    [    2.53us    ]
+RL Time Constant                                                                    [     10ns     ]
+Bandwidth (Output)                                                                  [   15.92MHz   ]
+
+───────────────────────────────────────────[  L1: 1uH  ]────────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   25.33nF    ]
+L/C Reactance                                                                       [    6.28Ω     ]
+RC Time Constant                                                                    [    1.27us    ]
+RL Time Constant                                                                    [     20ns     ]
+Bandwidth (Output)                                                                  [   7.96MHz    ]
+
+───────────────────────────────────────────[  L1: 2uH  ]────────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   12.67nF    ]
+L/C Reactance                                                                       [    12.57Ω    ]
+RC Time Constant                                                                    [   633.26ns   ]
+RL Time Constant                                                                    [     40ns     ]
+Bandwidth (Output)                                                                  [   3.98MHz    ]
+
+───────────────────────────────────────────[  L1: 4uH  ]────────────────────────────────────────────
+L1 Tuned Capacitance                                                                [    6.33nF    ]
+L/C Reactance                                                                       [    25.13Ω    ]
+RC Time Constant                                                                    [   316.63ns   ]
+RL Time Constant                                                                    [     80ns     ]
+Bandwidth (Output)                                                                  [   1.99MHz    ]
+
+───────────────────────────────────────────[  L1: 5uH  ]────────────────────────────────────────────
+L1 Tuned Capacitance                                                                [    5.07nF    ]
+L/C Reactance                                                                       [    31.42Ω    ]
+RC Time Constant                                                                    [   253.3ns    ]
+RL Time Constant                                                                    [    100ns     ]
+Bandwidth (Output)                                                                  [   1.59MHz    ]
+
+───────────────────────────────────────────[  L1: 8uH  ]────────────────────────────────────────────
+L1 Tuned Capacitance                                                                [    3.17nF    ]
+L/C Reactance                                                                       [    50.27Ω    ]
+RC Time Constant                                                                    [   158.31ns   ]
+RL Time Constant                                                                    [    160ns     ]
+Bandwidth (Output)                                                                  [  994.72kHz   ]
+
+───────────────────────────────────────────[  L1: 10uH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [    2.53nF    ]
+L/C Reactance                                                                       [    62.83Ω    ]
+RC Time Constant                                                                    [   126.65ns   ]
+RL Time Constant                                                                    [    200ns     ]
+Bandwidth (Output)                                                                  [  795.77kHz   ]
+
+───────────────────────────────────────────[  L1: 20uH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [    1.27nF    ]
+L/C Reactance                                                                       [   125.66Ω    ]
+RC Time Constant                                                                    [   63.33ns    ]
+RL Time Constant                                                                    [    400ns     ]
+Bandwidth (Output)                                                                  [  397.89kHz   ]
+
+───────────────────────────────────────────[  L1: 40uH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   633.26pF   ]
+L/C Reactance                                                                       [   251.33Ω    ]
+RC Time Constant                                                                    [   31.66ns    ]
+RL Time Constant                                                                    [    800ns     ]
+Bandwidth (Output)                                                                  [  198.94kHz   ]
+
+───────────────────────────────────────────[  L1: 50uH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   506.61pF   ]
+L/C Reactance                                                                       [   314.16Ω    ]
+RC Time Constant                                                                    [   25.33ns    ]
+RL Time Constant                                                                    [     1us      ]
+Bandwidth (Output)                                                                  [  159.15kHz   ]
+
+───────────────────────────────────────────[  L1: 80uH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   316.63pF   ]
+L/C Reactance                                                                       [   502.65Ω    ]
+RC Time Constant                                                                    [   15.83ns    ]
+RL Time Constant                                                                    [    1.6us     ]
+Bandwidth (Output)                                                                  [   99.47kHz   ]
+
+──────────────────────────────────────────[  L1: 100uH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   253.3pF    ]
+L/C Reactance                                                                       [   628.32Ω    ]
+RC Time Constant                                                                    [   12.67ns    ]
+RL Time Constant                                                                    [     2us      ]
+Bandwidth (Output)                                                                  [   79.58kHz   ]
+
+──────────────────────────────────────────[  L1: 200uH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   126.65pF   ]
+L/C Reactance                                                                       [    1.26kΩ    ]
+RC Time Constant                                                                    [    6.33ns    ]
+RL Time Constant                                                                    [     4us      ]
+Bandwidth (Output)                                                                  [   39.79kHz   ]
+
+──────────────────────────────────────────[  L1: 400uH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   63.33pF    ]
+L/C Reactance                                                                       [    2.51kΩ    ]
+RC Time Constant                                                                    [    3.17ns    ]
+RL Time Constant                                                                    [     8us      ]
+Bandwidth (Output)                                                                  [   19.89kHz   ]
+
+──────────────────────────────────────────[  L1: 500uH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   50.66pF    ]
+L/C Reactance                                                                       [    3.14kΩ    ]
+RC Time Constant                                                                    [    2.53ns    ]
+RL Time Constant                                                                    [     10us     ]
+Bandwidth (Output)                                                                  [   15.92kHz   ]
+
+──────────────────────────────────────────[  L1: 800uH  ]───────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   31.66pF    ]
+L/C Reactance                                                                       [    5.03kΩ    ]
+RC Time Constant                                                                    [    1.58ns    ]
+RL Time Constant                                                                    [     16us     ]
+Bandwidth (Output)                                                                  [   9.95kHz    ]
+
+───────────────────────────────────────────[  L1: 1mH  ]────────────────────────────────────────────
+L1 Tuned Capacitance                                                                [   25.33pF    ]
+L/C Reactance                                                                       [    6.28kΩ    ]
+RC Time Constant                                                                    [    1.27ns    ]
+RL Time Constant                                                                    [     20us     ]
+Bandwidth (Output)                                                                  [   7.96kHz    ]
+
